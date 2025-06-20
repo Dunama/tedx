@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TEDxYola User Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    /* Add a class for red text if needed */
+    .text-red-600-custom { color: #dc2626; }
+    .bg-red-600-custom { background-color: #dc2626; }
+    .bg-red-700-custom { background-color: #b91c1c; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-teal-100 to-blue-200 font-sans text-gray-800">
+  <div class="container mx-auto p-6">
+    <header class="flex justify-between items-center mb-8 border-b-2 border-gray-300 pb-4">
+      <div class="flex items-center">
+        <!-- <img src="https://via.placeholder.com/40" alt="TEDx Logo" class="mr-3 transform hover:scale-110 transition duration-300"> -->
+        <h1 class="text-2xl font-bold text-red-600">TEDxYola</h1>
+      </div>
+      <div class="flex items-center space-x-6">
+        <span class="text-sm font-medium text-gray-700">Welcome, {{ user.name }}</span>
+        <a href="{{ url_for('logout') }}">
+          <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>
+        </a>
+      </div>
+    </header>
+    <main>
+      <section class="bg-white p-6 rounded-2xl shadow-2xl transform hover:shadow-3xl transition duration-300">
+        <h2 class="text-3xl font-semibold mb-4 text-red-600">Your Event Experience</h2>
+        <p class="text-gray-600 mb-6">Get ready for an inspiring event! Check the countdown and your event details below.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:bg-gray-200 transition duration-300 text-center">
+            <p class="text-gray-600 uppercase text-xs font-medium">Event Date & Time</p>
+            <p class="text-2xl font-bold text-gray-900 mt-2">June 21, 2025, 11:00 PM WAT</p>
+            <p class="text-gray-500 text-sm">Mark your calendar!</p>
+          </div>
+          <div class="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:bg-gray-200 transition duration-300 text-center">
+            <p class="text-gray-600 uppercase text-xs font-medium">Countdown</p>
+            <div id="countdown" class="text-3xl font-bold text-red-600 mt-2 pulse"></div>
+            <p class="text-gray-500 text-sm">Time left until the event</p>
+          </div>
+        </div>
+        <div class="mt-8 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-lg">
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">Event Information</h3>
+          <p class="text-gray-600">Join us for an unforgettable TEDxYola experience. Check your ticket status and venue details here.</p>
+          <button class="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition duration-300 pulse">
+            View My Ticket
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    function updateCountdown() {
+      const eventDate = new Date('June 21, 2025 23:00:00 GMT+0100').getTime();
+      const now = new Date().getTime();
+      const distance = eventDate - now;
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById('countdown').innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+      if (distance < 0) {
+        document.getElementById('countdown').innerHTML = 'Event has started!';
+      }
+    }
+
+    // Update countdown right away and then every second
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>

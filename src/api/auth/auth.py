@@ -91,7 +91,7 @@ def googleCallback():
 @auth_bp.route('/login')
 def login():
     user = session.get("user")
-    return render_template("login.html", user=user)
+    return redirect(url_for("dashboard"))
 
 # Dummy User class for database operations (replace with your actual User model)
 class User:

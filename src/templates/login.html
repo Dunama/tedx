@@ -20,18 +20,7 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
-        {% if user %}
-        <div class="text-center space-y-4">
-            <p class="text-green-600">Welcome, {{ user.name or user.email }}!</p>
-            <form method="get" action="/admin/users" style="margin-bottom: 16px;">
-                <button type="submit" style="width: 100%; background: linear-gradient(135deg, #E62B1E 0%, #FF4136 100%); color: white; font-weight: 700; font-size: 1.1rem; border: none; border-radius: 8px; padding: 16px 0; box-shadow: 0 4px 16px rgba(230,43,30,0.08); transition: background 0.3s; cursor: pointer;">Go to Dashboard</button>
-            </form>
-            <form method="get" action="/auth/">
-                <button type="submit" style="width: 100%; background: #495057; color: white; font-weight: 700; font-size: 1.1rem; border: none; border-radius: 8px; padding: 16px 0; box-shadow: 0 4px 16px rgba(73,80,87,0.08); transition: background 0.3s; cursor: pointer;">Logout</button>
-            </form>
-        </div>
-        {% else %}
+
         <form method="POST" action="/login" class="space-y-6">
             <div>
                 <label for="username" class="block text-gray-700">Username</label>
@@ -49,7 +38,7 @@
         <a href="{{ url_for('auth.googleLogin') }}" class="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded bg-white hover:bg-gray-50 font-semibold">
             <img src="{{ url_for('static', filename='images/googleIcon.png') }}" alt="Google Icon" class="w-5 h-5 mr-2"> Sign in with Google
         </a>
-        {% endif %}
     </div>
 </body>
 </html>
+   
