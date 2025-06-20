@@ -1,125 +1,156 @@
-from flask import Blueprint, redirect, url_for, render_template, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from authlib.integrations.flask_client import OAuth
+from src.models import db, User
+from src.form import SignupForm, LoginForm
 import os
 
-# Initialize OAuth and Blueprint
+auth_bp = Blueprint("auth", __name__)
 oauth = OAuth()
-auth_bp = Blueprint('auth', __name__)
+
+
+# -------------------- OAuth Initialization --------------------
+def init_oauth(app):
+    oauth.init_app(app)
+    oauth.register(
+        name="myApp",
+        client_id=os.getenv("OAUTH2_CLIENT_ID"),
+        client_secret=os.getenv("OAUTH2_CLIENT_SECRET"),
+        server_metadata_url=os.getenv("OAUTH2_METADATA_URL"),
+        client_kwargs={"scope": "openid email profile"},
+    )
+
+
+# -------------------- Signup --------------------
+@auth_bp.route("/", methods=["GET", "POST"])
+def signup():
+    """
+    Show signup form and handle form submission
+    """
+    form = SignupForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data  # NOTE: Not hashed (not secure for production)
+
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if not existing_user:
+            user = User(name=username, email=email, password=password)
+            db.session.add(user)
+            db.session.commit()
+
+        session["user"] = {"name": username, "email": email}
+        flash("Account created successfully!", "success")
+        return redirect(url_for("dashboard"))
+
+    return render_template("signup.html", form=form)
+
+
+# -------------------- Login --------------------
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
+    """
+    Show login form and validate dummy credentials
+    """
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        # You can replace this with real user DB lookup
+        user = User.query.filter_by(name=username).first()
+        if user:
+            session["user"] = {"name": user.name, "email": user.email}
+            flash("Logged in successfully!", "success")
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Invalid username or password.", "error")
+
+    return render_template("login.html", form=form)
+
+
+
+
+auth_bp = Blueprint("auth", __name__)
+oauth = OAuth()
 
 def init_oauth(app):
     oauth.init_app(app)
     oauth.register(
-        "myApp",
-        client_id=os.getenv("OAUTH2_CLIENT_ID"),    
-        client_secret=os.getenv("OAUTH2_CLIENT_SECRET"), 
+        name="myApp",
+        client_id=os.getenv("OAUTH2_CLIENT_ID"),
+        client_secret=os.getenv("OAUTH2_CLIENT_SECRET"),
         server_metadata_url=os.getenv("OAUTH2_METADATA_URL"),
-        client_kwargs={
-            "scope": "openid email profile"
-        }
+        client_kwargs={"scope": "openid email profile"},
     )
 
-
-@auth_bp.route("/")
+@auth_bp.route("/", methods=["GET", "POST"])
 def signup():
-    '''signup page'''
-    return render_template("signup.html")
+    form = SignupForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data
+
+        existing_user = User.query.filter_by(email=email).first()
+        if not existing_user:
+            user = User(name=username, email=email, password=password)
+            db.session.add(user)
+            db.session.commit()
+
+        session["user"] = {"name": username, "email": email}
+        flash("Account created successfully!", "success")
+        return redirect(url_for("dashboard"))
+    return render_template("signup.html", form=form)
+
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(name=username).first()
+        if user and (user.password == password):
+            session["user"] = {"name": user.name, "email": user.email}
+            flash("Logged in successfully!", "success")
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Invalid username or password.", "error")
+    return render_template("login.html", form=form)
 
 @auth_bp.route("/googleLogin")
 def googleLogin():
-    return oauth.myApp.authorize_redirect(redirect_uri=url_for("auth.googleCallback", _external=True))        
+    try:
+        redirect_uri = url_for("auth.googleCallback", _external=True)
+        return oauth.myApp.authorize_redirect(redirect_uri)
+    except Exception as e:
+        flash("Error initiating Google login.", "error")
+        return redirect(url_for("auth.signup"))
 
 @auth_bp.route("/signin-google")
 def googleCallback():
-    '''redirect after google oauth - FIX TO SAVE ALL USERS'''
     try:
-        # Get the token from OAuth2
         token = oauth.myApp.authorize_access_token()
-        
-        # Extract user information from the token
-        user_info = token.get('userinfo')
-        if not user_info:
-            print("No userinfo in token")
-            flash('Failed to get user information from Google')
-            return redirect(url_for("auth.signup"))
-        
-        # Get email from user info
-        email = user_info.get('email')
-        name = user_info.get('name', '')
-        
-        print(f"OAuth Callback - Processing user: {email}")  # Debug log
-        
-        if not email:
-            print("No email found in userinfo")
-            flash('Email not provided by Google')
-            return redirect(url_for("auth.signup"))
-        
-        # Save user to dummy_db for admin panel visibility
-        try:
-            from src.api.auth.dummy_db import dummy_db
-            # Check if user already exists in dummy_db
-            exists = False
-            for user in getattr(dummy_db, 'users', []):
-                if (isinstance(user, dict) and user.get('email') == email) or \
-                   (hasattr(user, 'email') and getattr(user, 'email', None) == email):
-                    exists = True
-                    break
-            if not exists:
-                new_id = len(getattr(dummy_db, 'users', [])) + 1
-                dummy_db.users.append({'id': new_id, 'email': email})
-                print(f"Added {email} to dummy_db.users")
-        except Exception as e:
-            print(f"Could not save user to dummy_db: {e}")
+        user_info = token.get("userinfo")
 
-        # Store user data in session (this is what makes login work)
-        session["user"] = {
-            'email': email,
-            'name': name,
-            'userinfo': user_info
-        }
-        
-        # Store the full token for potential future use
-        session["token"] = token
-        
-        print(f"Session created for user: {email}")
-        return redirect(url_for("auth.login"))
-        
+        if not user_info or not user_info.get("email"):
+            flash("Failed to retrieve email from Google.", "error")
+            return redirect(url_for("auth.signup"))
+
+        email = user_info["email"]
+        name = user_info.get("name", "Guest")
+
+        session["user"] = {"email": email, "name": name, "userinfo": user_info}
+
+        if not User.query.filter_by(email=email).first():
+            new_user = User(email=email, name=name)
+            db.session.add(new_user)
+            db.session.commit()
+
+        flash(f"Welcome, {name}!", "success")
+        return redirect(url_for("dashboard"))
+
     except Exception as e:
-        print(f"OAuth callback error: {e}")
-        flash('Authentication failed. Please try again.')
+        print(f"[Google OAuth Error]: {e}")
+        flash("Google Sign-In failed.", "error")
         return redirect(url_for("auth.signup"))
-
-@auth_bp.route('/login')
-def login():
-    user = session.get("user")
-    return redirect(url_for("dashboard"))
-
-# Dummy User class for database operations (replace with your actual User model)
-class User:
-    def __init__(self, email, is_pro=False):
-        self.email = email
-        self.is_pro = is_pro
-    
-    @staticmethod
-    def query():
-        return UserQuery()
-
-class UserQuery:
-    def filter_by(self, **kwargs):
-        return self
-    
-    def first(self):
-        return None
-
-# Dummy database session (replace with your actual db session)
-class DBSession:
-    def add(self, obj):
-        pass
-    
-    def commit(self):
-        pass
-    
-    def rollback(self):
-        pass
-
-db = type('DB', (), {'session': DBSession()})()
-
