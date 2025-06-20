@@ -159,13 +159,6 @@ def view_all_users():
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             }
             
-            .debug-section h4 { 
-                margin-top: 0; 
-                color: #856404;
-                font-size: 1.3rem;
-                font-weight: 600;
-            }
-            
             .stats { 
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white; 
@@ -377,14 +370,6 @@ def view_all_users():
             </div>
             
             <div class="content">
-                <div class="debug-section">
-                    <h4>🐛 Debug Information</h4>
-                    <p><strong>Total Users in Database:</strong> {{ total_users }}</p>
-                    <p><strong>Query Time:</strong> {{ generated_at }}</p>
-                    <p><strong>Issue:</strong> If you signed up but don't see your email here, the OAuth2 callback isn't saving users properly.</p>
-                    <p><strong>Next Step:</strong> Check server logs for OAuth2 errors, or try signing up again with a new email.</p>
-                </div>
-                
                 <!-- Display summary statistics -->
                 <div class="stats">
                     <h3>📊 User Statistics</h3>
