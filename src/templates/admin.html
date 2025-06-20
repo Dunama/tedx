@@ -20,9 +20,9 @@
     <!-- HEADER -->
     <header class="flex justify-between items-center mb-8 border-b-2 border-red-300 pb-4">
       <div class="flex items-center">
-        <img src="https://via.placeholder.com/40" alt="TEDx Logo" class="mr-3 transform hover:scale-110 transition duration-300">
-        <h1 class="text-2xl font-bold text-red-600">TEDxYola Registration Desk</h1>
-      </div>
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="TEDx Logo" class="w-10 h-10 object-contain rounded-full" />        
+      <h1 class="text-2xl font-bold text-red-600">TEDxYola Registration Desk</h1>
+      </div> 
       <div class="flex items-center space-x-6">
         <span class="text-sm font-medium text-gray-700">Welcome back, Admin [Username]</span>
         <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>

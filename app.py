@@ -76,7 +76,7 @@ def dashboard():
     if not user:
       
         return redirect(url_for('auth.login'))
-    return render_template('userDashboard.html', user=user)
+    return render_template('dashboard.html', user=user)
 
 @app.route('/logout')
 def logout():
