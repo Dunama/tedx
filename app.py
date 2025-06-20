@@ -9,7 +9,7 @@ import os
 from src.api.auth.auth import auth_bp, init_oauth
 from admin import admin_bp
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='src/static', template_folder='src/templates')
 app.secret_key = os.urandom(24)
 
 # Register the auth blueprint
