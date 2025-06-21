@@ -22,7 +22,7 @@
         <h1 class="text-2xl font-bold text-red-600 ml-2">TEDxYola Registration Desk</h1>
       </div> 
       <div class="flex items-center space-x-6">
-        <span class="text-sm font-medium text-gray-700">Welcome back, Admin</span>
+        <span class="text-sm font-medium text-gray-700">Welcome back, Admin [Username]</span>
         <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>
       </div>
     </header>
@@ -47,7 +47,7 @@
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Event Capacity</p>
-            <p id="event-capacity" class="text-3xl font-bold text-red-700 mt-2">200</p>
+            <p id="event-capacity" class="text-3xl font-bold text-red-700 mt-2">500</p>
             <p class="text-red-500 text-sm">Maximum attendees</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
@@ -60,22 +60,24 @@
         <!-- TICKET VERIFICATION -->
         <div class="mt-8">
           <div class="flex items-center mb-5">
-            <form id="ticket-form" class="w-full flex items-center bg-white rounded-lg p-2 shadow-md">
-              <button type="submit" class="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 rounded-l-lg flex items-center hover:from-red-600 hover:to-red-800 transition duration-300 pulse">
+            <form id="ticket-form" class="w-full flex flex-col sm:flex-row items-center bg-white rounded-lg p-2 shadow-md space-y-2 sm:space-y-0 sm:space-x-2">
+              <input type="text" id="ticket_serial" placeholder="Enter Serial Number (e.g., S15H4F444)"
+                class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white">
+              <input type="text" id="attendee_name" placeholder="Enter Attendee Name"
+                class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white">
+              <button type="submit" class="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 rounded-lg flex items-center hover:from-red-600 hover:to-red-800 transition duration-300 pulse w-full sm:w-auto">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round"
                   stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 Verify Ticket
               </button>
-              <input type="text" id="ticket_serial" placeholder="Enter Serial Number (e.g., S15H4F444)"
-                class="flex-1 p-3 border-0 rounded-r-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white" required>
             </form>
             <span class="ml-4 text-red-600 text-sm font-medium italic">:: All Tickets</span>
           </div>
           <div class="p-6 bg-white rounded-xl border border-red-200 shadow-lg">
             <div id="verification-result" class="p-4 mb-4 bg-red-50 rounded-lg border-l-4 hidden"></div>
             <p class="text-red-700 mb-3 font-medium">Ticket Verification</p>
-            <p class="text-red-500 mb-5">Enter or scan a ticket serial number to verify attendee information.</p>
+            <p class="text-red-500 mb-5">Enter or scan a ticket serial number or attendee name to verify information. At least one field is required.</p>
           </div>
         </div>
       </section>
@@ -222,7 +224,7 @@
     let registeredUsers = [];
     let checkedInUsers = [];
 
-    // Preprocess data to count duplicates
+    // Preprocess data to count duplicates for ticket numbers
     const ticketCounts = ticketData.reduce((acc, entry) => {
       const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
       if (ticketNum) {
@@ -247,69 +249,108 @@
     function verifyTicket(event) {
       event.preventDefault();
       const serialInput = document.getElementById('ticket_serial').value.trim();
+      const nameInput = document.getElementById('attendee_name').value.trim();
       const serial = serialInput.toUpperCase();
+      const name = nameInput.toUpperCase();
       const resultBox = document.getElementById('verification-result');
 
+      if (!serial && !name) {
+        resultBox.innerHTML = `<strong class="text-red-700">❌ Error:</strong> Please provide either a ticket number or attendee name.`;
+        resultBox.className = "p-4 mb-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded-lg";
+        resultBox.classList.remove('hidden');
+        return;
+      }
+
       try {
-        const match = ticketData.find(entry => {
-          const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
-          return ticketNum === serial;
-        });
+        let matches = [];
 
-        if (match && match["TICKET NUMBER"]) {
-          const isAlreadyVerified = checkedInUsers.some(user => user.ticketNumber === serial && user.id === match["S/N"]);
-          
-          if (isAlreadyVerified) {
-            resultBox.innerHTML = `
-              <strong class="text-yellow-700">⚠️ Already Verified:</strong><br>
-              <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
-              <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
-              <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
-              <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
-              <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"]}</span>
-            `;
-            resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
-          } else {
-            const duplicateCount = ticketCounts[serial] > 1 ? ticketCounts[serial] : 0;
-            const userData = {
-              id: match["S/N"],
-              ticketNumber: match["TICKET NUMBER"],
-              name: match["NAME"],
-              email: match["EMAIL"],
-              ticketType: match["TICKET TYPE"]
-            };
+        if (serial) {
+          // Search by ticket number
+          matches = ticketData.filter(entry => {
+            const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
+            return ticketNum === serial;
+          });
+        } else if (name) {
+          // Search by name
+          matches = ticketData.filter(entry => {
+            const entryName = entry["NAME"] ? String(entry["NAME"]).toUpperCase() : '';
+            return entryName.includes(name);
+          });
+        }
 
-            // Update registered users if not already present
-            if (!registeredUsers.some(user => user.ticketNumber === serial && user.id === match["S/N"])) {
-              registeredUsers.push(userData);
-            }
-
-            // Update checked-in users
-            checkedInUsers.push(userData);
-
-            // Update stats
-            updateStats();
-
-            resultBox.innerHTML = `
-              <strong class="text-green-700">✅ Valid Ticket:</strong><br>
-              <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
-              <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
-              <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
-              <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
-              <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"]}</span><br>
-              ${duplicateCount > 1 ? `<span class="text-yellow-700">⚠️ Duplicates Found: ${duplicateCount} instances</span>` : ''}
-            `;
-            resultBox.className = "p-4 mb-4 bg-green-50 text-green-700 border-l-4 border-green-500 rounded-lg";
-          }
-        } else {
-          resultBox.innerHTML = `<strong class="text-red-700">❌ Invalid Ticket:</strong> ${serial}`;
+        if (matches.length === 0) {
+          resultBox.innerHTML = `<strong class="text-red-700">❌ Invalid:</strong> No match found for ${serial ? `ticket ${serial}` : `name "${nameInput}"`}.`;
           resultBox.className = "p-4 mb-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded-lg";
+          resultBox.classList.remove('hidden');
+          return;
+        }
+
+        if (matches.length > 1 && name && !serial) {
+          resultBox.innerHTML = `
+            <strong class="text-yellow-700">⚠️ Multiple Matches Found:</strong><br>
+            <span class="text-gray-800">Multiple attendees match the name "${nameInput}". Please provide a ticket number for precise verification.</span><br>
+            <ul class="list-disc list-inside text-gray-800">
+              ${matches.map(match => `<li>ID: ${match["S/N"]}, Name: ${match["NAME"]}, Ticket: ${match["TICKET NUMBER"] || 'N/A'}</li>`).join('')}
+            </ul>
+          `;
+          resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
+          resultBox.classList.remove('hidden');
+          return;
+        }
+
+        // Use the first match for verification
+        const match = matches[0];
+        const ticketNumber = match["TICKET NUMBER"] ? String(match["TICKET NUMBER"]).toUpperCase() : '';
+        const isAlreadyVerified = checkedInUsers.some(user => user.ticketNumber === ticketNumber && user.id === match["S/N"]);
+
+        if (isAlreadyVerified) {
+          resultBox.innerHTML = `
+            <strong class="text-yellow-700">⚠️ Already Verified:</strong><br>
+            <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
+            <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
+            <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
+            <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
+            <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"] || 'N/A'}</span>
+          `;
+          resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
+        } else {
+          const duplicateCount = ticketCounts[ticketNumber] > 1 ? ticketCounts[ticketNumber] : 0;
+          const userData = {
+            id: match["S/N"],
+            ticketNumber: match["TICKET NUMBER"] || `NAME_${match["S/N"]}`, // Use a unique identifier for entries without ticket numbers
+            name: match["NAME"],
+            email: match["EMAIL"],
+            ticketType: match["TICKET TYPE"]
+          };
+
+          // Update registered users if not already present
+          if (!registeredUsers.some(user => user.ticketNumber === userData.ticketNumber && user.id === match["S/N"])) {
+            registeredUsers.push(userData);
+          }
+
+          // Update checked-in users
+          checkedInUsers.push(userData);
+
+          // Update stats
+          updateStats();
+
+          resultBox.innerHTML = `
+            <strong class="text-green-700">✅ Valid ${serial ? 'Ticket' : 'Attendee'}:</strong><br>
+            <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
+            <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
+            <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
+            <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
+            <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"] || 'N/A'}</span><br>
+            ${duplicateCount > 1 ? `<span class="text-yellow-700">⚠️ Duplicates Found: ${duplicateCount} instances for this ticket number</span>` : ''}
+          `;
+          resultBox.className = "p-4 mb-4 bg-green-50 text-green-700 border-l-4 border-green-500 rounded-lg";
         }
 
         resultBox.classList.remove('hidden');
-        document.getElementById('ticket_serial').value = ''; // Clear input
+        document.getElementById('ticket_serial').value = '';
+        document.getElementById('attendee_name').value = '';
       } catch (error) {
-        resultBox.innerHTML = `<strong class="text-yellow-700">⚠️ Error checking ticket.</strong>`;
+        resultBox.innerHTML = `<strong class="text-yellow-700">⚠️ Error checking ticket or name.</strong>`;
         resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
         resultBox.classList.remove('hidden');
       }
