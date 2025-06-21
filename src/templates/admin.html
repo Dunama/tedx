@@ -22,7 +22,7 @@
         <h1 class="text-2xl font-bold text-red-600 ml-2">TEDxYola Registration Desk</h1>
       </div> 
       <div class="flex items-center space-x-6">
-        <span class="text-sm font-medium text-gray-700">Welcome back, Admin [Username]</span>
+        <span class="text-sm font-medium text-gray-700">Welcome back, Admin</span>
         <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>
       </div>
     </header>
@@ -37,22 +37,22 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Total Registered</p>
-            <p class="text-3xl font-bold text-red-700 mt-2">{{ total_users }}</p>
+            <p id="total-users" class="text-3xl font-bold text-red-700 mt-2">0</p>
             <p class="text-red-500 text-sm">Attendees registered</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Checked In</p>
-            <p class="text-3xl font-bold text-green-700 mt-2">{{ checked_in }}</p>
+            <p id="checked-in" class="text-3xl font-bold text-green-700 mt-2">0</p>
             <p class="text-red-500 text-sm">Currently at venue</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Event Capacity</p>
-            <p class="text-3xl font-bold text-red-700 mt-2">{{ event_capacity }}</p>
+            <p id="event-capacity" class="text-3xl font-bold text-red-700 mt-2">200</p>
             <p class="text-red-500 text-sm">Maximum attendees</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Check-in Rate</p>
-            <p class="text-3xl font-bold text-red-600 mt-2">{{ checkin_rate }}</p>
+            <p id="checkin-rate" class="text-3xl font-bold text-red-600 mt-2">0%</p>
             <p class="text-red-500 text-sm">Of registered attendees</p>
           </div>
         </div>
@@ -60,7 +60,7 @@
         <!-- TICKET VERIFICATION -->
         <div class="mt-8">
           <div class="flex items-center mb-5">
-            <form onsubmit="verifyTicket(event)" class="w-full flex items-center bg-white rounded-lg p-2 shadow-md">
+            <form id="ticket-form" class="w-full flex items-center bg-white rounded-lg p-2 shadow-md">
               <button type="submit" class="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 rounded-l-lg flex items-center hover:from-red-600 hover:to-red-800 transition duration-300 pulse">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round"
@@ -88,7 +88,7 @@
       {"S/N":2,"NAME":"Peace Hyellasini Charles","TICKET NUMBER":"SRZ3AH079","TICKET TYPE":"Core","PHONE":"","EMAIL":"peacehyella@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
       {"S/N":3,"NAME":"Aaron David","TICKET NUMBER":"S80986H43","TICKET TYPE":"Core","PHONE":"","EMAIL":"aarondavid208@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
       {"S/N":4,"NAME":"Wada Silas Bitrus","TICKET NUMBER":"S4H3RDHRV","TICKET TYPE":"Core","PHONE":"","EMAIL":"silasbitruswada@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":5,"NAME":"Eglah Dauda Gah","TICKET NUMBER":"S9119282H","TICKET TYPE":"Prime","PHONE":"","EMAIL":"eglahgah@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
+      {"S/N":5,"NAME":"Eglah Dauda","TICKET NUMBER":"S9119282H","TICKET TYPE":"Prime","PHONE":"","EMAIL":"eglahgah@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
       {"S/N":6,"NAME":"Joshua Ishaku","TICKET NUMBER":"SV01M1V8A","TICKET TYPE":"Prime","PHONE":"","EMAIL":"ishakuj125@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
       {"S/N":7,"NAME":"Godwin Yakubu","TICKET NUMBER":"S44H8T98U","TICKET TYPE":"Prime","PHONE":"","EMAIL":"godwinyakubumamza2000@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
       {"S/N":8,"NAME":"GIDEON ELI ABBO","TICKET NUMBER":"S4I1L0R04","TICKET TYPE":"Prime","PHONE":"","EMAIL":"abbogideoneli@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
@@ -218,36 +218,109 @@
       {"S/N":18,"NAME":"Comfort Chama Samuel","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"chamacomfort19@gmail.com","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""}
     ];
 
+    // State management
+    let registeredUsers = [];
+    let checkedInUsers = [];
+
+    // Preprocess data to count duplicates
+    const ticketCounts = ticketData.reduce((acc, entry) => {
+      const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
+      if (ticketNum) {
+        acc[ticketNum] = (acc[ticketNum] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    // Update stat cards
+    function updateStats() {
+      const totalUsers = new Set(registeredUsers.map(user => user.ticketNumber)).size;
+      const checkedIn = new Set(checkedInUsers.map(user => user.ticketNumber)).size;
+      const eventCapacity = parseInt(document.getElementById('event-capacity').textContent) || 500;
+      const checkinRate = totalUsers > 0 ? ((checkedIn / totalUsers) * 100).toFixed(1) : 0;
+
+      document.getElementById('total-users').textContent = totalUsers;
+      document.getElementById('checked-in').textContent = checkedIn;
+      document.getElementById('checkin-rate').textContent = `${checkinRate}%`;
+    }
+
+    // Verify ticket and update stats
     function verifyTicket(event) {
       event.preventDefault();
-      const serial = document.getElementById('ticket_serial').value.trim().toUpperCase();
+      const serialInput = document.getElementById('ticket_serial').value.trim();
+      const serial = serialInput.toUpperCase();
       const resultBox = document.getElementById('verification-result');
 
       try {
-        const match = ticketData.find(entry => entry["TICKET NUMBER"]?.toUpperCase() === serial);
+        const match = ticketData.find(entry => {
+          const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
+          return ticketNum === serial;
+        });
 
         if (match && match["TICKET NUMBER"]) {
-          resultBox.innerHTML = `
-            <strong class="text-green-700">✅ Valid Ticket:</strong><br>
-            <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
-            <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
-            <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
-            <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
-            <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"]}</span>
-          `;
-          resultBox.className = "p-4 mb-4 bg-green-50 text-green-700 border-l-4 border-green-500 rounded-lg";
+          const isAlreadyVerified = checkedInUsers.some(user => user.ticketNumber === serial && user.id === match["S/N"]);
+          
+          if (isAlreadyVerified) {
+            resultBox.innerHTML = `
+              <strong class="text-yellow-700">⚠️ Already Verified:</strong><br>
+              <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
+              <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
+              <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
+              <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
+              <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"]}</span>
+            `;
+            resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
+          } else {
+            const duplicateCount = ticketCounts[serial] > 1 ? ticketCounts[serial] : 0;
+            const userData = {
+              id: match["S/N"],
+              ticketNumber: match["TICKET NUMBER"],
+              name: match["NAME"],
+              email: match["EMAIL"],
+              ticketType: match["TICKET TYPE"]
+            };
+
+            // Update registered users if not already present
+            if (!registeredUsers.some(user => user.ticketNumber === serial && user.id === match["S/N"])) {
+              registeredUsers.push(userData);
+            }
+
+            // Update checked-in users
+            checkedInUsers.push(userData);
+
+            // Update stats
+            updateStats();
+
+            resultBox.innerHTML = `
+              <strong class="text-green-700">✅ Valid Ticket:</strong><br>
+              <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
+              <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
+              <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
+              <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
+              <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"]}</span><br>
+              ${duplicateCount > 1 ? `<span class="text-yellow-700">⚠️ Duplicates Found: ${duplicateCount} instances</span>` : ''}
+            `;
+            resultBox.className = "p-4 mb-4 bg-green-50 text-green-700 border-l-4 border-green-500 rounded-lg";
+          }
         } else {
           resultBox.innerHTML = `<strong class="text-red-700">❌ Invalid Ticket:</strong> ${serial}`;
           resultBox.className = "p-4 mb-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded-lg";
         }
 
         resultBox.classList.remove('hidden');
+        document.getElementById('ticket_serial').value = ''; // Clear input
       } catch (error) {
         resultBox.innerHTML = `<strong class="text-yellow-700">⚠️ Error checking ticket.</strong>`;
         resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
         resultBox.classList.remove('hidden');
       }
     }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('ticket-form');
+      form.addEventListener('submit', verifyTicket);
+      updateStats();
+    });
   </script>
 </body>
 </html>
