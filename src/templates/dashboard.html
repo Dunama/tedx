@@ -16,17 +16,17 @@
   </style>
 </head>
 <body class="bg-gradient-to-br from-teal-100 to-blue-200 font-sans text-gray-800">
-  <div class="container mx-auto max-w-screen-md p-4 md:p-6">
+  <div class="container mx-auto max-w-screen-md px-4 sm:px-6 py-4">
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row sm:justify-between items-center gap-4 mb-6 border-b-2 border-gray-300 pb-4">
+    <header class="flex flex-row justify-between items-center flex-wrap gap-4 mb-6 border-b border-gray-300 pb-4">
       <div class="flex items-center space-x-3">
         <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="TEDx Logo" class="w-10 h-10 object-contain rounded-full" />
-        <h1 class="text-2xl font-bold text-red-600">TEDxYola</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-red-600">TEDxYola</h1>
       </div>
-      <div class="flex flex-wrap gap-3 items-center">
+      <div class="flex flex-col sm:flex-row gap-2 items-center text-center">
         <span class="text-sm font-medium text-gray-700">Welcome, {{ user.name }}</span>
         <a href="{{ url_for('logout') }}">
-          <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">
+          <button class="w-full sm:w-auto text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300 text-sm">
             Sign Out
           </button>
         </a>
@@ -35,31 +35,31 @@
 
     <!-- Main Dashboard -->
     <main>
-      <section class="bg-white p-6 rounded-2xl shadow-2xl transition duration-300">
-        <h2 class="text-2xl md:text-3xl font-semibold mb-4 text-red-600">Your Event Experience</h2>
-        <p class="text-gray-600 mb-6 text-sm md:text-base">Get ready for an inspiring event! Check the countdown and your event details below.</p>
+      <section class="bg-white p-4 sm:p-6 rounded-2xl shadow-2xl transition duration-300">
+        <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-red-600">Your Event Experience</h2>
+        <p class="text-gray-600 mb-6 text-sm sm:text-base leading-relaxed">Get ready for an inspiring event! Check the countdown and your event details below.</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 text-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 text-center">
             <p class="text-gray-600 uppercase text-xs font-medium">Event Date & Time</p>
-            <p class="text-xl md:text-2xl font-bold text-gray-900 mt-2">June 21, 2025, 11:00 AM </p>
+            <p class="text-lg sm:text-xl font-bold text-gray-900 mt-2">June 21, 2025, 11:00 AM</p>
             <p class="text-gray-500 text-sm">Mark your calendar!</p>
             <p class="text-xs text-gray-500 mt-1" id="user-timezone"></p>
           </div>
-          <div class="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 text-center">
+          <div class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 text-center">
             <p class="text-gray-600 uppercase text-xs font-medium">Countdown</p>
-            <div id="countdown" class="text-2xl md:text-3xl font-bold text-red-600 mt-2 pulse"></div>
+            <div id="countdown" class="text-xl sm:text-2xl font-bold text-red-600 mt-2 pulse"></div>
             <p class="text-gray-500 text-sm">Time left until the event</p>
-            <button id="join-live-btn" class="mt-4 hidden bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition duration-300 pulse">
+            <button id="join-live-btn" class="mt-4 hidden w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-300 pulse text-sm">
               Join Live
             </button>
           </div>
         </div>
 
-        <div class="mt-8 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-lg">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">Event Information</h3>
-          <p class="text-gray-600 mb-4">Join us for an unforgettable TEDxYola experience. Check your ticket status and venue details here.</p>
-          <button class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition duration-300 pulse">
+        <div class="mt-6 sm:mt-8 p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-lg">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Event Information</h3>
+          <p class="text-gray-600 mb-4 text-sm leading-relaxed">Join us for an unforgettable TEDxYola experience. Check your ticket status and venue details here.</p>
+          <button class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition duration-300 pulse text-sm">
             View My Ticket
           </button>
         </div>
@@ -70,8 +70,7 @@
   <!-- Countdown Timer Script -->
   <script>
     function updateCountdown() {
-      // Nigeria = UTC+1; so 11:00 AM WAT is 10:00 AM UTC
-      const eventDate = new Date(Date.UTC(2025, 5, 21, 10, 0, 0)).getTime();
+      const eventDate = new Date(Date.UTC(2025, 5, 21, 10, 0, 0)).getTime(); // June is 5 (0-indexed)
       const now = new Date().getTime();
       const distance = eventDate - now;
       const countdownEl = document.getElementById('countdown');
@@ -91,7 +90,7 @@
       countdownEl.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
-    // Show user's local interpretation of the event time
+    // Show user's local time for the event
     const localTime = new Date(Date.UTC(2025, 5, 21, 10, 0, 0));
     document.getElementById("user-timezone").textContent = localTime.toLocaleString();
 
