@@ -18,12 +18,14 @@
     <!-- HEADER -->
     <header class="flex justify-between items-center mb-8 border-b-2 border-red-300 pb-4">
       <div class="flex items-center">
-        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="TEDx Logo" class="w-10 h-10 object-contain rounded-full" />        
-        <h1 class="text-2xl font-bold text-red-600 ml-2">TEDxYola Registration Desk</h1>
+        <!-- <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="TEDx Logo" class="w-10 h-10 object-contain rounded-full" />         -->
+        <h1 class="text-2xl font-bold text-red-600 ml-2">👉 Bit-Brothers Registration Desk 👈.</h1>
       </div> 
       <div class="flex items-center space-x-6">
         <span class="text-sm font-medium text-gray-700">Welcome back, Admin</span>
-        <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>
+        <a href="{{ url_for('logout') }}">
+          <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>
+        </a>
       </div>
     </header>
 
@@ -37,22 +39,22 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Total Registered</p>
-            <p id="total-users" class="text-3xl font-bold text-red-700 mt-2">0</p>
+            <p id="total-users" class="text-3xl font-bold text-red-700 mt-2">Loading...</p>
             <p class="text-red-500 text-sm">Attendees registered</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Checked In</p>
-            <p id="checked-in" class="text-3xl font-bold text-green-700 mt-2">0</p>
+            <p id="checked-in" class="text-3xl font-bold text-green-700 mt-2">Loading...</p>
             <p class="text-red-500 text-sm">Currently at venue</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Event Capacity</p>
-            <p id="event-capacity" class="text-3xl font-bold text-red-700 mt-2">500</p>
+            <p id="event-capacity" class="text-3xl font-bold text-red-700 mt-2">Loading...</p>
             <p class="text-red-500 text-sm">Maximum attendees</p>
           </div>
           <div class="p-5 bg-white rounded-lg text-center border border-red-200 hover:bg-red-50 transition duration-300">
             <p class="text-red-600 uppercase text-xs font-medium">Check-in Rate</p>
-            <p id="checkin-rate" class="text-3xl font-bold text-red-600 mt-2">0%</p>
+            <p id="checkin-rate" class="text-3xl font-bold text-red-600 mt-2">Loading...</p>
             <p class="text-red-500 text-sm">Of registered attendees</p>
           </div>
         </div>
@@ -61,10 +63,11 @@
         <div class="mt-8">
           <div class="flex items-center mb-5">
             <form id="ticket-form" class="w-full flex flex-col sm:flex-row items-center bg-white rounded-lg p-2 shadow-md space-y-2 sm:space-y-0 sm:space-x-2">
-              <input type="text" id="ticket_serial" placeholder="Enter Serial Number (e.g., S15H4F444)"
+              <input type="text" id="ticket_serial" placeholder="Enter Serial Number (e.g., gst-SHoKlPKV5U1wI9j)"
                 class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white">
-              <input type="text" id="attendee_name" placeholder="Enter Attendee Name"
-                class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white">
+              <input type="text" id="attendee_name" placeholder="Enter Attendee Name" list="attendee_suggestions"
+                class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white" autocomplete="off">
+              <datalist id="attendee_suggestions"></datalist>
               <button type="submit" class="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 rounded-lg flex items-center hover:from-red-600 hover:to-red-800 transition duration-300 pulse w-full sm:w-auto">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round"
@@ -72,7 +75,6 @@
                 Verify Ticket
               </button>
             </form>
-            <span class="ml-4 text-red-600 text-sm font-medium italic">:: All Tickets</span>
           </div>
           <div class="p-6 bg-white rounded-xl border border-red-200 shadow-lg">
             <div id="verification-result" class="p-4 mb-4 bg-red-50 rounded-lg border-l-4 hidden"></div>
@@ -85,283 +87,115 @@
   </div>
 
   <script>
-    const ticketData = [
-      {"S/N":1,"NAME":"Abdulrahman Ahmad","TICKET NUMBER":"S15H4F444","TICKET TYPE":"Core","PHONE":"","EMAIL":"abdulrahmanahmad111222@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":2,"NAME":"Peace Hyellasini Charles","TICKET NUMBER":"SRZ3AH079","TICKET TYPE":"Core","PHONE":"","EMAIL":"peacehyella@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":3,"NAME":"Aaron David","TICKET NUMBER":"S80986H43","TICKET TYPE":"Core","PHONE":"","EMAIL":"aarondavid208@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":4,"NAME":"Wada Silas Bitrus","TICKET NUMBER":"S4H3RDHRV","TICKET TYPE":"Core","PHONE":"","EMAIL":"silasbitruswada@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":5,"NAME":"Eglah Dauda","TICKET NUMBER":"S9119282H","TICKET TYPE":"Prime","PHONE":"","EMAIL":"eglahgah@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":6,"NAME":"Joshua Ishaku","TICKET NUMBER":"SV01M1V8A","TICKET TYPE":"Prime","PHONE":"","EMAIL":"ishakuj125@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":7,"NAME":"Godwin Yakubu","TICKET NUMBER":"S44H8T98U","TICKET TYPE":"Prime","PHONE":"","EMAIL":"godwinyakubumamza2000@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":8,"NAME":"GIDEON ELI ABBO","TICKET NUMBER":"S4I1L0R04","TICKET TYPE":"Prime","PHONE":"","EMAIL":"abbogideoneli@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":9,"NAME":"Fatimah Sahabo Magaji","TICKET NUMBER":"S41841330","TICKET TYPE":"Core","PHONE":"","EMAIL":"fsahabo6@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":10,"NAME":"John Emmanuel Ezekiel","TICKET NUMBER":"S7U5216V3","TICKET TYPE":"Prime","PHONE":"","EMAIL":"emjayfx001@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":11,"NAME":"Socket Cfr","TICKET NUMBER":"S7U5216V3","TICKET TYPE":"Prime","PHONE":"","EMAIL":"unpluggedconcepts01@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":12,"NAME":"Socket Cfr","TICKET NUMBER":"S7U5216V3","TICKET TYPE":"Prime","PHONE":"","EMAIL":"unpluggedconcepts01@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":13,"NAME":"Ekemini Essien","TICKET NUMBER":"S9B24FVJ1","TICKET TYPE":"Prime","PHONE":"","EMAIL":"g7hostpartners@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":14,"NAME":"ROSEBEL BAMAIYI","TICKET NUMBER":"S5YHQ9S39","TICKET TYPE":"Core","PHONE":"","EMAIL":"christabelshine@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":15,"NAME":"Sylvester Phadion","TICKET NUMBER":"SE0L05G9O","TICKET TYPE":"Core","PHONE":"","EMAIL":"sylvesterphadion@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":16,"NAME":"Dankema Yusufu Umar","TICKET NUMBER":"S21P27VQ2","TICKET TYPE":"Core","PHONE":"","EMAIL":"khemosdan@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":17,"NAME":"Henry Femi Ojo","TICKET NUMBER":"SLE79B849","TICKET TYPE":"Core","PHONE":"","EMAIL":"henryfemiojo@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":18,"NAME":"Albert Abbo Wakili","TICKET NUMBER":"S14K4GL19","TICKET TYPE":"Prime","PHONE":"","EMAIL":"wakilialbert@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":19,"NAME":"Moses Shalldang","TICKET NUMBER":"SP9U04474","TICKET TYPE":"Core","PHONE":"","EMAIL":"andrewmoses74@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":20,"NAME":"Mercy Samuel","TICKET NUMBER":"S0990J9N9","TICKET TYPE":"Core","PHONE":"","EMAIL":"samuelmercy835@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":21,"NAME":"CHIJIOKE MALACHY ATTAMAH","TICKET NUMBER":"S6L7UB260","TICKET TYPE":"Prime","PHONE":"","EMAIL":"knowledgeblog1@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":22,"NAME":"Hadison Habila Joel","TICKET NUMBER":"SE54C90D6","TICKET TYPE":"Prime","PHONE":"","EMAIL":"hadisonhabila65@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":23,"NAME":"Michael Ayuka","TICKET NUMBER":"S4EI66630","TICKET TYPE":"Prime","PHONE":"","EMAIL":"ayukamichael001@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":24,"NAME":"Ubah Godwin Owotikwu","TICKET NUMBER":"S1Z944952","TICKET TYPE":"Core","PHONE":"","EMAIL":"ubahgodwin.o95@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":25,"NAME":"Sanusi Fatima Bakari","TICKET NUMBER":"S867AIZ77","TICKET TYPE":"Core","PHONE":"","EMAIL":"fatmeey101@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":26,"NAME":"joseph yahaya opaluwa","TICKET NUMBER":"S5YP57W44","TICKET TYPE":"Core","PHONE":"","EMAIL":"opaluwajoseph7@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":27,"NAME":"Edward Kawahama","TICKET NUMBER":"S2277FF9N","TICKET TYPE":"Prime","PHONE":"","EMAIL":"kawahamaedward@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":28,"NAME":"Joseph Ingio","TICKET NUMBER":"S499L1775","TICKET TYPE":"Core","PHONE":"","EMAIL":"dondicky01@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":29,"NAME":"Hajara Muhammad furo","TICKET NUMBER":"S31O1L1O9","TICKET TYPE":"Prime","PHONE":"","EMAIL":"hajarahfuro@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":30,"NAME":"Akami Christopher Osso","TICKET NUMBER":"S5W04D1U4","TICKET TYPE":"Prime","PHONE":"","EMAIL":"Christopherakami1@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":31,"NAME":"Hapsat Mahmud Tuta","TICKET NUMBER":"S94U60994","TICKET TYPE":"Prime","PHONE":"","EMAIL":"hapsatututa96@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":32,"NAME":"Aileen Ndatuwa Anthony","TICKET NUMBER":"SUA9Y1ON9","TICKET TYPE":"Prime","PHONE":"","EMAIL":"aileenanthony96@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":33,"NAME":"Okibe Gideon","TICKET NUMBER":"S834W4D7U","TICKET TYPE":"Prime","PHONE":"","EMAIL":"gideonokibe2@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":34,"NAME":"Emmanuel Japhet","TICKET NUMBER":"S77M4F31T","TICKET TYPE":"Core","PHONE":"","EMAIL":"emmyjay28@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":35,"NAME":"Abdullahi Abdulrahman","TICKET NUMBER":"S3V195175","TICKET TYPE":"Core","PHONE":"","EMAIL":"bekajee005@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":36,"NAME":"Apollos Tabiya Chafi","TICKET NUMBER":"SYA599H31","TICKET TYPE":"Prime","PHONE":"","EMAIL":"tapsycool@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":37,"NAME":"McDonald Njoku","TICKET NUMBER":"S91044K44","TICKET TYPE":"Cloud","PHONE":"","EMAIL":"mcdonaldchijioke@gmail.com","AMOUNT":2000,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":38,"NAME":"Segun Ezekiel","TICKET NUMBER":"S740M0845","TICKET TYPE":"Prime","PHONE":"","EMAIL":"segeshow76312@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":39,"NAME":"Segun Ezekiel","TICKET NUMBER":"S740M0845","TICKET TYPE":"Prime","PHONE":"","EMAIL":"segeshow76312@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":40,"NAME":"Caleb David","TICKET NUMBER":"S18615991","TICKET TYPE":"Prime","PHONE":"","EMAIL":"jiransacaleb06@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":41,"NAME":"Amos Sani Gift","TICKET NUMBER":"S18J71111","TICKET TYPE":"Prime","PHONE":"","EMAIL":"giftedamos31@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":42,"NAME":"Udeogu Stella Azuka","TICKET NUMBER":"S0461UT95","TICKET TYPE":"Prime","PHONE":"","EMAIL":"stella.udeogu@aun.edu.ng","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":43,"NAME":"Mary Dzelambong Isaac","TICKET NUMBER":"S973B861E","TICKET TYPE":"Prime","PHONE":"","EMAIL":"maryisaac239@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":44,"NAME":"Kolbe Justin Jonathan","TICKET NUMBER":"S7050S3M3","TICKET TYPE":"Prime","PHONE":"","EMAIL":"kolbejustin1@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":45,"NAME":"Adati Bernard","TICKET NUMBER":"S1P78U945","TICKET TYPE":"Prime","PHONE":"","EMAIL":"adatiyaks88@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":46,"NAME":"Dzarma Malgwi","TICKET NUMBER":"SO0U81844","TICKET TYPE":"Core","PHONE":"","EMAIL":"malgwidzarma@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":47,"NAME":"Dzarma Malgwi","TICKET NUMBER":"SO0U81844","TICKET TYPE":"Core","PHONE":"","EMAIL":"malgwidzarma@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":48,"NAME":"Nankyer Sarah Joseph","TICKET NUMBER":"S842482HP","TICKET TYPE":"Prime","PHONE":"","EMAIL":"sarahnankyer@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":49,"NAME":"Jechiliah Job","TICKET NUMBER":"SP2777125","TICKET TYPE":"Core","PHONE":"","EMAIL":"jechiliahjob@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":50,"NAME":"Richard Zorto","TICKET NUMBER":"S9B421444","TICKET TYPE":"Core","PHONE":"","EMAIL":"zortorichard27@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":51,"NAME":"Bangmo Biyapo","TICKET NUMBER":"S14887GPH","TICKET TYPE":"Prime","PHONE":"","EMAIL":"bmorebiyapo567@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":52,"NAME":"Muhammad Tajudeen","TICKET NUMBER":"S84292738","TICKET TYPE":"Prime","PHONE":"","EMAIL":"muhammadtaju@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":53,"NAME":"Ahmed Ibrahim","TICKET NUMBER":"S318D45Q3","TICKET TYPE":"Core","PHONE":"","EMAIL":"ahmed.iibrahymn@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":54,"NAME":"Catherine Aji Yadima","TICKET NUMBER":"SJ5139333","TICKET TYPE":"Cloud","PHONE":"","EMAIL":"ajicatherineyadima@gmail.com","AMOUNT":1870,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":55,"NAME":"Faith-Emmanuela Akpan","TICKET NUMBER":"SZXN561DD","TICKET TYPE":"Prime","PHONE":"","EMAIL":"faith.akpan@aun.edu.ng","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":56,"NAME":"JULIUS BETHUEL DAZINA","TICKET NUMBER":"S6889475G","TICKET TYPE":"Core","PHONE":"","EMAIL":"juliusdazina11@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":57,"NAME":"Ibrahim Hayatu Pantami","TICKET NUMBER":"S91605Z10","TICKET TYPE":"Prime","PHONE":"","EMAIL":"ihayatusaidu@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":58,"NAME":"Jemimah Emmanuel Joel","TICKET NUMBER":"SS1JDD530","TICKET TYPE":"Core","PHONE":"","EMAIL":"jemimahemmanueljoel56@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":59,"NAME":"Haske Enoch","TICKET NUMBER":"S1CO8786Q","TICKET TYPE":"Prime","PHONE":"","EMAIL":"haskeenoch1@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":60,"NAME":"Abigail Dia","TICKET NUMBER":"S1516G910","TICKET TYPE":"Prime","PHONE":"","EMAIL":"diaabigailyahaya@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":61,"NAME":"Ochim Kingsley Odeh","TICKET NUMBER":"S67887N48","TICKET TYPE":"Core","PHONE":"","EMAIL":"ochimkingsleyodeh@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":62,"NAME":"Iyanu Steven","TICKET NUMBER":"S1N465Q74","TICKET TYPE":"Core","PHONE":"","EMAIL":"steveniyanu@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":63,"NAME":"Samuel Sabastine","TICKET NUMBER":"S27TT3447","TICKET TYPE":"Core","PHONE":"","EMAIL":"sabassamuel700@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":64,"NAME":"Lelle Hyluwa","TICKET NUMBER":"SZZF66C1I","TICKET TYPE":"Prime","PHONE":"","EMAIL":"hyluwalellez@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":65,"NAME":"Muazu Muazu","TICKET NUMBER":"S1720712B","TICKET TYPE":"Prime","PHONE":"","EMAIL":"msquare4l@gmail.com","AMOUNT":5230,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":66,"NAME":"Amedu Ehi Esther","TICKET NUMBER":"SKC7RO159","TICKET TYPE":"Core","PHONE":"","EMAIL":"ehie7372@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":67,"NAME":"ALEMIKA OLUWAFUNMILAYO ROSELINE","TICKET NUMBER":"S35171CF1","TICKET TYPE":"Core","PHONE":"","EMAIL":"alemikaroseline0@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":68,"NAME":"Ani Janet","TICKET NUMBER":"S1615111Z","TICKET TYPE":"Core","PHONE":"","EMAIL":"janetani50@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":69,"NAME":"Phebe Oyelekan","TICKET NUMBER":"S095GBJSX","TICKET TYPE":"Core","PHONE":"","EMAIL":"joyoyelekan22@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":70,"NAME":"Alice Shehu","TICKET NUMBER":"S561B9U6U","TICKET TYPE":"Core","PHONE":"","EMAIL":"shehulovina1@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":71,"NAME":"Ahmed Yusuf Nadabo","TICKET NUMBER":"SL0H57FB0","TICKET TYPE":"Cloud","PHONE":"","EMAIL":"ahmadynu01@gmail.com","AMOUNT":1870,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":72,"NAME":"Miriam Ojochenemi","TICKET NUMBER":"S082X8I3N","TICKET TYPE":"Core","PHONE":"","EMAIL":"miriamchenemi@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":73,"NAME":"Jerry Sunday","TICKET NUMBER":"SY54GLL9F","TICKET TYPE":"Core","PHONE":"","EMAIL":"jerrysunday302@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":74,"NAME":"DANIEL ODOMODO PETER","TICKET NUMBER":"S4X7I4F99","TICKET TYPE":"Core","PHONE":"","EMAIL":"danielodomodopeter@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":75,"NAME":"Ishiyaku Haruna Sajo","TICKET NUMBER":"S5I1Y05QM","TICKET TYPE":"Prime","PHONE":"","EMAIL":"harunaishiyaku36@gmail.com","AMOUNT":5710,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":76,"NAME":"Padio Andrew","TICKET NUMBER":"SF294U8T8","TICKET TYPE":"Core","PHONE":"","EMAIL":"christabelshine@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":77,"NAME":"Chiribom Amesaentop Rimamyere","TICKET NUMBER":"S9658R89C","TICKET TYPE":"Core","PHONE":"","EMAIL":"amesaentopchiribom@gmail.com","AMOUNT":2830,"PAYMENT STATUS":"PAID","MODE":"Online","ADMIT":""},
-      {"S/N":1,"NAME":"Mansur","TICKET NUMBER":"11025","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":2,"NAME":"Praise Barnabas","TICKET NUMBER":"21003","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":3,"NAME":"Christopher Dennis(For someone)","TICKET NUMBER":"21025","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":4,"NAME":"Christopher Dennis(For someone)","TICKET NUMBER":"21026","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":5,"NAME":"Christopher Dennis(For someone)","TICKET NUMBER":"21027","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":8,"NAME":"Binan Tsetu","TICKET NUMBER":"","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":9,"NAME":"Hauwa Rufai(For Someone)","TICKET NUMBER":"21008","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":10,"NAME":"Stanley(For Someone)","TICKET NUMBER":"21001","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":11,"NAME":"Stanley (For Someone)","TICKET NUMBER":"21002","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":12,"NAME":"Bulus (For Someone)","TICKET NUMBER":"","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":13,"NAME":"Bulus (For Someone)","TICKET NUMBER":"","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":14,"NAME":"Bulus (For Someone)","TICKET NUMBER":"","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":15,"NAME":"Olulam Ngari","TICKET NUMBER":"","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":16,"NAME":"Rachael (For Someone)","TICKET NUMBER":"21045","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":17,"NAME":"Rachael (For Someone)","TICKET NUMBER":"21043","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":18,"NAME":"Rachael (For Someone)","TICKET NUMBER":"11067","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":19,"NAME":"Goodness (Chimda Musa)","TICKET NUMBER":"","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":20,"NAME":"Goodness (Edna Casley)","TICKET NUMBER":"","TICKET TYPE":"Prime","PHONE":"","EMAIL":"","AMOUNT":5500,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":21,"NAME":"Bought for the office","TICKET NUMBER":"11063","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":22,"NAME":"Bought for the office","TICKET NUMBER":"11064","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":23,"NAME":"Simi Bature","TICKET NUMBER":"11060","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":24,"NAME":"Abubakar Bappa","TICKET NUMBER":"11066","TICKET TYPE":"Core","PHONE":"7035367954","EMAIL":"","AMOUNT":3000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":""},
-      {"S/N":25,"NAME":"Cynthia Nneamaka","TICKET NUMBER":"","TICKET TYPE":"Core","PHONE":"","EMAIL":"cynthiamouneke@gmail.com","AMOUNT":2000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":"Bal 1000"},
-      {"S/N":26,"NAME":"Veronica Nwokorie","TICKET NUMBER":"","TICKET TYPE":"Core","PHONE":"","EMAIL":"","AMOUNT":2000,"PAYMENT STATUS":"PAID","MODE":"Offline","ADMIT":"Bal 1000"},
-      {"S/N":1,"NAME":"Pastor Daniel Agbenyo","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":2,"NAME":"Dr Gabriel Ekwere","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":3,"NAME":"Dr Ibrahim Inuwa","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":4,"NAME":"The Commisoner of Information","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":5,"NAME":"The Commisoner of Information (PA)","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":6,"NAME":"Mr Slyvester Moniedafe","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":1,"NAME":"Ojoma Yusuf","TICKET NUMBER":"","TICKET TYPE":"Press","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":2,"NAME":"Mrs Peace Olumode","TICKET NUMBER":"","TICKET TYPE":"(performers wife)","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":3,"NAME":"Gotel 1","TICKET NUMBER":"","TICKET TYPE":"Press","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":4,"NAME":"Gotel 2","TICKET NUMBER":"","TICKET TYPE":"Press","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":5,"NAME":"Gotel 3","TICKET NUMBER":"","TICKET TYPE":"press","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":6,"NAME":"ATV","TICKET NUMBER":"","TICKET TYPE":"press","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":27,"NAME":"Aisha Mohammed Jiji","TICKET NUMBER":"","TICKET TYPE":"Prime","PHONE":"","EMAIL":"TedxJimeta","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":1,"NAME":"Adama Beverages (1)","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":2,"NAME":"Adama Beverages (2)","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":3,"NAME":"Brightnest Realty 1","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":4,"NAME":"Brightnest Realty 2","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":5,"NAME":"Brightnest Realty 3","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":6,"NAME":"Brightnest Realty 4","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":7,"NAME":"Brightnest Realty 5","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":8,"NAME":"Himaz Properties 1","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":9,"NAME":"Himaz Properties 2","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":10,"NAME":"Himaz Properties 3","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":11,"NAME":"Himaz Properties 4","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":12,"NAME":"Himaz Properties 5","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":13,"NAME":"Get Medford 1","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":14,"NAME":"Get Medford 2","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":15,"NAME":"Get Medford 3","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":16,"NAME":"AUN Hotels 1","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":17,"NAME":"AUN Hotels 2","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""},
-      {"S/N":18,"NAME":"Comfort Chama Samuel","TICKET NUMBER":"","TICKET TYPE":"","PHONE":"","EMAIL":"chamacomfort19@gmail.com","AMOUNT":null,"PAYMENT STATUS":"","MODE":"","ADMIT":""}
-    ];
-
-    // State management
-    let registeredUsers = [];
-    let checkedInUsers = [];
-
-    // Preprocess data to count duplicates for ticket numbers
-    const ticketCounts = ticketData.reduce((acc, entry) => {
-      const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
-      if (ticketNum) {
-        acc[ticketNum] = (acc[ticketNum] || 0) + 1;
+    // Load statistics on page load
+    async function loadStats() {
+      try {
+        const response = await fetch('/registration/stats');
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('total-users').textContent = data.total_registered;
+          document.getElementById('checked-in').textContent = data.checked_in;
+          document.getElementById('event-capacity').textContent = data.event_capacity;
+          document.getElementById('checkin-rate').textContent = data.checkin_rate + '%';
+        } else {
+          console.error('Failed to load stats');
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error);
       }
-      return acc;
-    }, {});
-
-    // Update stat cards
-    function updateStats() {
-      const totalUsers = new Set(registeredUsers.map(user => user.ticketNumber)).size;
-      const checkedIn = new Set(checkedInUsers.map(user => user.ticketNumber)).size;
-      const eventCapacity = parseInt(document.getElementById('event-capacity').textContent) || 500;
-      const checkinRate = totalUsers > 0 ? ((checkedIn / totalUsers) * 100).toFixed(1) : 0;
-
-      document.getElementById('total-users').textContent = totalUsers;
-      document.getElementById('checked-in').textContent = checkedIn;
-      document.getElementById('checkin-rate').textContent = `${checkinRate}%`;
     }
 
-    // Verify ticket and update stats
-    function verifyTicket(event) {
-      event.preventDefault();
-      const serialInput = document.getElementById('ticket_serial').value.trim();
-      const nameInput = document.getElementById('attendee_name').value.trim();
-      const serial = serialInput.toUpperCase();
-      const name = nameInput.toUpperCase();
-      const resultBox = document.getElementById('verification-result');
+    // Attendee name autocomplete
+    const attendeeInput = document.getElementById('attendee_name');
+    const datalist = document.getElementById('attendee_suggestions');
 
-      if (!serial && !name) {
-        resultBox.innerHTML = `<strong class="text-red-700">❌ Error:</strong> Please provide either a ticket number or attendee name.`;
-        resultBox.className = "p-4 mb-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded-lg";
-        resultBox.classList.remove('hidden');
+    attendeeInput.addEventListener('input', async () => {
+      const query = attendeeInput.value.trim();
+      if (query.length < 2) {
+        datalist.innerHTML = '';
         return;
       }
 
       try {
-        let matches = [];
-
-        if (serial) {
-          // Search by ticket number
-          matches = ticketData.filter(entry => {
-            const ticketNum = entry["TICKET NUMBER"] ? String(entry["TICKET NUMBER"]).toUpperCase() : null;
-            return ticketNum === serial;
-          });
-        } else if (name) {
-          // Search by name
-          matches = ticketData.filter(entry => {
-            const entryName = entry["NAME"] ? String(entry["NAME"]).toUpperCase() : '';
-            return entryName.includes(name);
+        const response = await fetch(`/registration/search?q=${encodeURIComponent(query)}`);
+        if (response.ok) {
+          const data = await response.json();
+          datalist.innerHTML = '';
+          data.attendees.forEach(attendee => {
+            const option = document.createElement('option');
+            option.value = attendee.name;
+            datalist.appendChild(option);
           });
         }
+      } catch (error) {
+        console.error('Error fetching attendee suggestions:', error);
+      }
+    });
 
-        if (matches.length === 0) {
-          resultBox.innerHTML = `<strong class="text-red-700">❌ Invalid:</strong> No match found for ${serial ? `ticket ${serial}` : `name "${nameInput}"`}.`;
-          resultBox.className = "p-4 mb-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded-lg";
-          resultBox.classList.remove('hidden');
-          return;
-        }
+    // Ticket verification form
+    document.getElementById('ticket-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const serialNumber = document.getElementById('ticket_serial').value.trim();
+      const attendeeName = document.getElementById('attendee_name').value.trim();
+      const resultDiv = document.getElementById('verification-result');
+      
+      if (!serialNumber && !attendeeName) {
+        showResult('Please enter either a serial number or attendee name', 'error');
+        return;
+      }
 
-        if (matches.length > 1 && name && !serial) {
-          resultBox.innerHTML = `
-            <strong class="text-yellow-700">⚠️ Multiple Matches Found:</strong><br>
-            <span class="text-gray-800">Multiple attendees match the name "${nameInput}". Please provide a ticket number for precise verification.</span><br>
-            <ul class="list-disc list-inside text-gray-800">
-              ${matches.map(match => `<li>ID: ${match["S/N"]}, Name: ${match["NAME"]}, Ticket: ${match["TICKET NUMBER"] || 'N/A'}</li>`).join('')}
-            </ul>
-          `;
-          resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
-          resultBox.classList.remove('hidden');
-          return;
-        }
+      try {
+        const response = await fetch('/registration/validate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ticket_serial: serialNumber,
+            attendee_name: attendeeName
+          })
+        });
 
-        // Use the first match for verification
-        const match = matches[0];
-        const ticketNumber = match["TICKET NUMBER"] ? String(match["TICKET NUMBER"]).toUpperCase() : '';
-        const isAlreadyVerified = checkedInUsers.some(user => user.ticketNumber === ticketNumber && user.id === match["S/N"]);
-
-        if (isAlreadyVerified) {
-          resultBox.innerHTML = `
-            <strong class="text-yellow-700">⚠️ Already Verified:</strong><br>
-            <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
-            <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
-            <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
-            <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
-            <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"] || 'N/A'}</span>
-          `;
-          resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
-        } else {
-          const duplicateCount = ticketCounts[ticketNumber] > 1 ? ticketCounts[ticketNumber] : 0;
-          const userData = {
-            id: match["S/N"],
-            ticketNumber: match["TICKET NUMBER"] || `NAME_${match["S/N"]}`, // Use a unique identifier for entries without ticket numbers
-            name: match["NAME"],
-            email: match["EMAIL"],
-            ticketType: match["TICKET TYPE"]
-          };
-
-          // Update registered users if not already present
-          if (!registeredUsers.some(user => user.ticketNumber === userData.ticketNumber && user.id === match["S/N"])) {
-            registeredUsers.push(userData);
+        const data = await response.json();
+        
+        if (response.ok) {
+          if (data.status === 'success') {
+            showResult(`✅ ${data.message}`, 'success');
+            loadStats(); // Refresh stats after successful check-in
+          } else if (data.status === 'already_checked_in') {
+            showResult(`⚠️ ${data.message}`, 'warning');
           }
-
-          // Update checked-in users
-          checkedInUsers.push(userData);
-
-          // Update stats
-          updateStats();
-
-          resultBox.innerHTML = `
-            <strong class="text-green-700">✅ Valid ${serial ? 'Ticket' : 'Attendee'}:</strong><br>
-            <span class="text-gray-800">ID: ${match["S/N"]}</span><br>
-            <span class="text-gray-800">Name: ${match["NAME"]}</span><br>
-            <span class="text-gray-800">Email: ${match["EMAIL"] || 'N/A'}</span><br>
-            <span class="text-gray-800">Ticket Type: ${match["TICKET TYPE"] || 'N/A'}</span><br>
-            <span class="text-gray-800">Ticket Number: ${match["TICKET NUMBER"] || 'N/A'}</span><br>
-            ${duplicateCount > 1 ? `<span class="text-yellow-700">⚠️ Duplicates Found: ${duplicateCount} instances for this ticket number</span>` : ''}
-          `;
-          resultBox.className = "p-4 mb-4 bg-green-50 text-green-700 border-l-4 border-green-500 rounded-lg";
+        } else {
+          showResult(`❌ ${data.message || 'Verification failed'}`, 'error');
         }
+      } catch (error) {
+        showResult('❌ Network error. Please try again.', 'error');
+        console.error('Error:', error);
+      }
+    });
 
-        resultBox.classList.remove('hidden');
+    function showResult(message, type) {
+      const resultDiv = document.getElementById('verification-result');
+      resultDiv.className = `p-4 mb-4 rounded-lg border-l-4 ${
+        type === 'success' ? 'bg-green-50 border-green-400 text-green-700' :
+        type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-700' :
+        'bg-red-50 border-red-400 text-red-700'
+      }`;
+      resultDiv.textContent = message;
+      resultDiv.classList.remove('hidden');
+      
+      // Clear form on success
+      if (type === 'success') {
         document.getElementById('ticket_serial').value = '';
         document.getElementById('attendee_name').value = '';
-      } catch (error) {
-        resultBox.innerHTML = `<strong class="text-yellow-700">⚠️ Error checking ticket or name.</strong>`;
-        resultBox.className = "p-4 mb-4 bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500 rounded-lg";
-        resultBox.classList.remove('hidden');
       }
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('ticket-form');
-      form.addEventListener('submit', verifyTicket);
-      updateStats();
-    });
+    // Load stats when page loads
+    loadStats();
+    // Refresh stats every 30 seconds
+    setInterval(loadStats, 30000);
   </script>
 </body>
 </html>

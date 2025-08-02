@@ -4,10 +4,13 @@ from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from flask_migrate import Migrate
-from src.models import db  # Your SQLAlchemy models
+from src.models import db
 from src.api.auth.auth import auth_bp, init_oauth
 from admin import admin_bp
 import os
+
+# Import all models so they're registered with SQLAlchemy
+from src.db.models.events import Event
 
 # -------------------- Flask App Setup --------------------
 
@@ -23,7 +26,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
-csrf = CSRFProtect(app)
+# csrf = CSRFProtect(app)  # Temporarily disabled for API testing
+
+# Exempt API endpoints from CSRF protection
+# csrf.exempt('src.api.registration_desk.registration_bp')
 
 # OAuth2 Setup
 init_oauth(app)
@@ -74,7 +80,6 @@ def login():
 def dashboard():
     user = session.get('user')
     if not user:
-      
         return redirect(url_for('auth.login'))
     return render_template('dashboard.html', user=user)
 
@@ -86,7 +91,6 @@ def logout():
 
 @app.route('/admin/users')
 def admin_users():
-    from src.api.auth.dummy_db import dummy_db  # imported here to avoid circular import errors
     token = request.args.get('token')
     expected_token = os.getenv('ADMIN_TOKEN')
 
@@ -94,25 +98,68 @@ def admin_users():
         flash('Admin access required. Invalid or missing token.', 'error')
         return redirect(url_for('admin_users', token=expected_token))
 
-    total_users = len(getattr(dummy_db, 'users', []))
-    checked_in = 0
-    event_capacity = 300
-    checkin_rate = f"{(checked_in / total_users * 100) if total_users else 0:.0f}%"
+    return render_template('admin.html')
 
-    return render_template(
-        'admin.html',
-        total_users=total_users,
-        checked_in=checked_in,
-        event_capacity=event_capacity,
-        checkin_rate=checkin_rate
-    )
+# -------------------- Database Initialization --------------------
+
+def create_tables():
+    """Create database tables and populate with sample data"""
+    db.create_all()
+    
+    # Import and populate attendee data
+    from src.db.models.events import Event, attendees
+    
+    # Check if data already exists
+    try:
+        if Event.query.count() == 0:
+            for attendee in attendees:
+                event = Event(
+                    event_id=attendee['event_id'],
+                    name=attendee['name'],
+                    email=attendee['email'],
+                    location=attendee['Location']
+                )
+                db.session.add(event)
+            db.session.commit()
+            print(f"Database populated with {len(attendees)} attendees")
+    except Exception as e:
+        # If table doesn't exist yet, skip population for now
+        print(f"Database initialization will be done after migration: {e}")
+
+# Database initialization will be done via migrations
+# Uncomment the following lines if you want to initialize without migrations:
+# with app.app_context():
+#     create_tables()
 
 # -------------------- Blueprints --------------------
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
+from src.api.registration_desk import registration_bp
+app.register_blueprint(registration_bp, url_prefix='/registration')
+
 # -------------------- Run App --------------------
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        # Populate initial data if needed
+        from src.db.models.events import Event, attendees
+        if Event.query.count() == 0:
+            try:
+                for attendee in attendees:
+                    event = Event(
+                        event_id=attendee['event_id'],
+                        name=attendee['name'],
+                        email=attendee['email'],
+                        location=attendee['Location']
+                    )
+                    db.session.add(event)
+                db.session.commit()
+                print(f"Database populated with {len(attendees)} attendees")
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error populating database: {e}")
+    
     app.run(debug=True)
