@@ -40,13 +40,16 @@ class Event(UserMixin, db.Model):
     @staticmethod
     def find_by_name_or_serial(name=None, serial=None):
         """Find attendee by name or event_id (serial) - case insensitive"""
+        from sqlalchemy import or_
         query = Event.query
         
         if name and serial:
-            # Both name and serial provided - use case-insensitive matching for both
+            # Both name and serial provided - use OR condition for verification
             return query.filter(
-                Event.name.ilike(f'%{name}%'),
-                Event.event_id.ilike(serial)
+                or_(
+                    Event.name.ilike(f'%{name}%'),
+                    Event.event_id.ilike(serial)
+                )
             ).first()
         elif name:
             # Only name provided - case-insensitive search
