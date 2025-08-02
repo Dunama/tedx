@@ -11,6 +11,7 @@ import os
 
 # Import all models so they're registered with SQLAlchemy
 from src.db.models.events import Event
+from src.models import User
 
 # -------------------- Flask App Setup --------------------
 

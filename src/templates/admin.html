@@ -21,7 +21,20 @@
         <!-- <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="TEDx Logo" class="w-10 h-10 object-contain rounded-full" />         -->
         <h1 class="text-2xl font-bold text-red-600 ml-2">👉 Bit-Brothers Registration Desk 👈.</h1>
       </div> 
-      <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-4">
+        <!-- Export Buttons -->
+        <button id="export-csv-btn" class="flex items-center text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full transition duration-300">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+          </svg>
+          Export CSV
+        </button>
+        <button id="export-db-script-btn" class="flex items-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full transition duration-300">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          DB Script
+        </button>
         <span class="text-sm font-medium text-gray-700">Welcome back, Admin</span>
         <a href="{{ url_for('logout') }}">
           <button class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full transition duration-300">Sign Out</button>
@@ -65,7 +78,7 @@
             <form id="ticket-form" class="w-full flex flex-col sm:flex-row items-center bg-white rounded-lg p-2 shadow-md space-y-2 sm:space-y-0 sm:space-x-2">
               <input type="text" id="ticket_serial" placeholder="Enter Serial Number (e.g., gst-SHoKlPKV5U1wI9j)"
                 class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white">
-              <input type="text" id="attendee_name" placeholder="Enter Attendee Name" list="attendee_suggestions"
+              <input type="text" id="attendee_name" placeholder="Enter Attendee Name (start typing for suggestions...)" list="attendee_suggestions"
                 class="flex-1 p-3 border-0 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-500 bg-white" autocomplete="off">
               <datalist id="attendee_suggestions"></datalist>
               <button type="submit" class="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 rounded-lg flex items-center hover:from-red-600 hover:to-red-800 transition duration-300 pulse w-full sm:w-auto">
@@ -105,30 +118,108 @@
       }
     }
 
-    // Attendee name autocomplete
+    // Attendee name autocomplete with improved functionality
     const attendeeInput = document.getElementById('attendee_name');
     const datalist = document.getElementById('attendee_suggestions');
+    let searchTimeout;
+    let isSearching = false;
 
     attendeeInput.addEventListener('input', async () => {
       const query = attendeeInput.value.trim();
+      
+      // Clear previous timeout
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+      
       if (query.length < 2) {
         datalist.innerHTML = '';
+        attendeeInput.style.backgroundImage = '';
         return;
       }
 
-      try {
-        const response = await fetch(`/registration/search?q=${encodeURIComponent(query)}`);
-        if (response.ok) {
-          const data = await response.json();
-          datalist.innerHTML = '';
-          data.attendees.forEach(attendee => {
-            const option = document.createElement('option');
-            option.value = attendee.name;
-            datalist.appendChild(option);
-          });
+      // Show loading indicator
+      attendeeInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23999\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\'/%3E%3C/svg%3E")';
+      attendeeInput.style.backgroundRepeat = 'no-repeat';
+      attendeeInput.style.backgroundPosition = 'right 10px center';
+      attendeeInput.style.backgroundSize = '20px 20px';
+
+      // Debounce the search to avoid too many requests
+      searchTimeout = setTimeout(async () => {
+        if (isSearching) return;
+        isSearching = true;
+        
+        try {
+          const response = await fetch(`/registration/search?q=${encodeURIComponent(query)}`);
+          if (response.ok) {
+            const data = await response.json();
+            datalist.innerHTML = '';
+            
+            if (data.attendees.length === 0) {
+              // Show "no results" indicator
+              attendeeInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23f56565\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\'/%3E%3Cline x1=\'15\' y1=\'9\' x2=\'9\' y2=\'15\'/%3E%3Cline x1=\'9\' y1=\'9\' x2=\'15\' y2=\'15\'/%3E%3C/svg%3E")';
+            } else {
+              // Show success indicator
+              attendeeInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2348bb78\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'20,6 9,17 4,12\'/%3E%3C/svg%3E")';
+            }
+            
+            // Sort results by relevance (exact matches first, then partial matches)
+            const sortedAttendees = data.attendees.sort((a, b) => {
+              const aNameLower = a.name.toLowerCase();
+              const bNameLower = b.name.toLowerCase();
+              const queryLower = query.toLowerCase();
+              
+              // Exact matches first
+              if (aNameLower === queryLower && bNameLower !== queryLower) return -1;
+              if (bNameLower === queryLower && aNameLower !== queryLower) return 1;
+              
+              // Then starts with query
+              if (aNameLower.startsWith(queryLower) && !bNameLower.startsWith(queryLower)) return -1;
+              if (bNameLower.startsWith(queryLower) && !aNameLower.startsWith(queryLower)) return 1;
+              
+              // Finally alphabetical
+              return aNameLower.localeCompare(bNameLower);
+            });
+            
+            sortedAttendees.forEach(attendee => {
+              const option = document.createElement('option');
+              option.value = attendee.name;
+              option.setAttribute('data-email', attendee.email);
+              option.setAttribute('data-event-id', attendee.event_id);
+              option.setAttribute('data-checked-in', attendee.checked_in);
+              
+              // Show additional info in the dropdown with status indicator
+              const status = attendee.checked_in ? '✅' : '⏳';
+              option.label = `${attendee.name} (${attendee.event_id}) ${status}`;
+              datalist.appendChild(option);
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching attendee suggestions:', error);
+          attendeeInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23f56565\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z\'/%3E%3Cline x1=\'12\' y1=\'9\' x2=\'12\' y2=\'13\'/%3E%3Cline x1=\'12\' y1=\'17\' x2=\'12.01\' y2=\'17\'/%3E%3C/svg%3E")';
+        } finally {
+          isSearching = false;
         }
-      } catch (error) {
-        console.error('Error fetching attendee suggestions:', error);
+      }, 300); // 300ms delay to debounce
+    });
+
+    // Auto-fill serial number when attendee is selected from dropdown
+    attendeeInput.addEventListener('change', () => {
+      const selectedOption = Array.from(datalist.options).find(option => option.value === attendeeInput.value);
+      if (selectedOption) {
+        const eventId = selectedOption.getAttribute('data-event-id');
+        if (eventId) {
+          document.getElementById('ticket_serial').value = eventId;
+        }
+        // Clear the background image when a selection is made
+        attendeeInput.style.backgroundImage = '';
+      }
+    });
+
+    // Clear background image when input is cleared
+    attendeeInput.addEventListener('blur', () => {
+      if (!attendeeInput.value.trim()) {
+        attendeeInput.style.backgroundImage = '';
       }
     });
 
@@ -191,6 +282,53 @@
         document.getElementById('attendee_name').value = '';
       }
     }
+
+    // Export functionality
+    document.getElementById('export-csv-btn').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/admin/export/csv');
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = 'tedx_attendees_export.csv';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          showResult('✅ CSV export completed successfully!', 'success');
+        } else {
+          showResult('❌ Export failed. Please try again.', 'error');
+        }
+      } catch (error) {
+        showResult('❌ Export error. Please try again.', 'error');
+        console.error('Export error:', error);
+      }
+    });
+
+    document.getElementById('export-db-script-btn').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/admin/export/db-script');
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = 'database_manager.py';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          showResult('✅ Database script exported successfully!', 'success');
+        } else {
+          showResult('❌ Script export failed. Please try again.', 'error');
+        }
+      } catch (error) {
+        showResult('❌ Script export error. Please try again.', 'error');
+        console.error('Script export error:', error);
+      }
+    });
 
     // Load stats when page loads
     loadStats();

@@ -39,15 +39,21 @@ class Event(UserMixin, db.Model):
     
     @staticmethod
     def find_by_name_or_serial(name=None, serial=None):
-        """Find attendee by name or event_id (serial)"""
+        """Find attendee by name or event_id (serial) - case insensitive"""
         query = Event.query
         
         if name and serial:
-            return query.filter_by(name=name, event_id=serial).first()
+            # Both name and serial provided - use case-insensitive matching for both
+            return query.filter(
+                Event.name.ilike(f'%{name}%'),
+                Event.event_id.ilike(serial)
+            ).first()
         elif name:
+            # Only name provided - case-insensitive search
             return query.filter(Event.name.ilike(f'%{name}%')).first()
         elif serial:
-            return query.filter_by(event_id=serial).first()
+            # Only serial provided - case-insensitive search
+            return query.filter(Event.event_id.ilike(serial)).first()
         
         return None
     
@@ -65,610 +71,587 @@ class Event(UserMixin, db.Model):
 
 # Sample attendees data - 97 attendees for testing
 attendees = [
-    {
-        "event_id": "gst-SHoKlPKV5U1wI9j",
-        "name": "Usama Abdulhamid Kambari",
-        "email": "abdulhamidusamakambari@gmail.com",
-        "Location": "Sengere futy"
-    },
-    {
-        "event_id": "gst-5ezcWzcqJto89jz", 
-        "name": "Abdullahi Muhammed",
-        "email": "abdullahimuhammed7195@gmail.com",
-        "Location": "Yola, Adamawa state."
-    },
-    {
-        "event_id": "gst-ABC123XYZ",
-        "name": "John Doe",
-        "email": "john.doe@example.com", 
-        "Location": "Test Location"
-    },
-    {
-        "event_id": "gst-DEF456UVW",
-        "name": "Jane Smith", 
-        "email": "jane.smith@example.com",
-        "Location": "Another Location"
-    },
-    {
-        "event_id": "gst-A1B2C3D4E5",
-        "name": "Aisha Mohammed",
-        "email": "aisha.mohammed@gmail.com",
-        "Location": "Yola North"
-    },
-    {
-        "event_id": "gst-F6G7H8I9J0",
-        "name": "Ibrahim Hassan",
-        "email": "ibrahim.hassan@yahoo.com",
-        "Location": "Jimeta"
-    },
-    {
-        "event_id": "gst-K1L2M3N4O5",
-        "name": "Fatima Usman",
-        "email": "fatima.usman@hotmail.com",
-        "Location": "Yola South"
-    },
-    {
-        "event_id": "gst-P6Q7R8S9T0",
-        "name": "Ahmed Aliyu",
-        "email": "ahmed.aliyu@gmail.com",
-        "Location": "Dougirei"
-    },
-    {
-        "event_id": "gst-U1V2W3X4Y5",
-        "name": "Khadija Bello",
-        "email": "khadija.bello@yahoo.com",
-        "Location": "Karewa"
-    },
-    {
-        "event_id": "gst-Z6A7B8C9D0",
-        "name": "Musa Adamu",
-        "email": "musa.adamu@gmail.com",
-        "Location": "Alkaleri"
-    },
-    {
-        "event_id": "gst-E1F2G3H4I5",
-        "name": "Hauwa Garba",
-        "email": "hauwa.garba@hotmail.com",
-        "Location": "Mbamba"
-    },
-    {
-        "event_id": "gst-J6K7L8M9N0",
-        "name": "Yusuf Ibrahim",
-        "email": "yusuf.ibrahim@yahoo.com",
-        "Location": "Nassarawo"
-    },
-    {
-        "event_id": "gst-O1P2Q3R4S5",
-        "name": "Zainab Suleiman",
-        "email": "zainab.suleiman@gmail.com",
-        "Location": "Luggere"
-    },
-    {
-        "event_id": "gst-T6U7V8W9X0",
-        "name": "Umar Yahaya",
-        "email": "umar.yahaya@hotmail.com",
-        "Location": "Viniklang"
-    },
-    {
-        "event_id": "gst-Y1Z2A3B4C5",
-        "name": "Amina Abdullahi",
-        "email": "amina.abdullahi@yahoo.com",
-        "Location": "Ajiya"
-    },
-    {
-        "event_id": "gst-D6E7F8G9H0",
-        "name": "Sani Ahmad",
-        "email": "sani.ahmad@gmail.com",
-        "Location": "Bekaji"
-    },
-    {
-        "event_id": "gst-I1J2K3L4M5",
-        "name": "Halima Musa",
-        "email": "halima.musa@hotmail.com",
-        "Location": "Wuro Jabbe"
-    },
-    {
-        "event_id": "gst-N6O7P8Q9R0",
-        "name": "Bashir Yusuf",
-        "email": "bashir.yusuf@yahoo.com",
-        "Location": "Yolde Pate"
-    },
-    {
-        "event_id": "gst-S1T2U3V4W5",
-        "name": "Maryam Salisu",
-        "email": "maryam.salisu@gmail.com",
-        "Location": "Sangere"
-    },
-    {
-        "event_id": "gst-X6Y7Z8A9B0",
-        "name": "Aliyu Baba",
-        "email": "aliyu.baba@hotmail.com",
-        "Location": "Yelwa"
-    },
-    {
-        "event_id": "gst-C1D2E3F4G5",
-        "name": "Safiya Haruna",
-        "email": "safiya.haruna@yahoo.com",
-        "Location": "Gwadabawa"
-    },
-    {
-        "event_id": "gst-H6I7J8K9L0",
-        "name": "Garba Audu",
-        "email": "garba.audu@gmail.com",
-        "Location": "Alkaleri Ward"
-    },
-    {
-        "event_id": "gst-M1N2O3P4Q5",
-        "name": "Rukayya Danjuma",
-        "email": "rukayya.danjuma@hotmail.com",
-        "Location": "Wuro Hausa"
-    },
-    {
-        "event_id": "gst-R6S7T8U9V0",
-        "name": "Ismail Tanko",
-        "email": "ismail.tanko@yahoo.com",
-        "Location": "Jabbi Lamba"
-    },
-    {
-        "event_id": "gst-W1X2Y3Z4A5",
-        "name": "Nafisa Umar",
-        "email": "nafisa.umar@gmail.com",
-        "Location": "Makama"
-    },
-    {
-        "event_id": "gst-B6C7D8E9F0",
-        "name": "Kabiru Suleiman",
-        "email": "kabiru.suleiman@hotmail.com",
-        "Location": "Toungo"
-    },
-    {
-        "event_id": "gst-G1H2I3J4K5",
-        "name": "Asma'u Balarabe",
-        "email": "asmau.balarabe@yahoo.com",
-        "Location": "Ribadu"
-    },
-    {
-        "event_id": "gst-L6M7N8O9P0",
-        "name": "Salisu Gidado",
-        "email": "salisu.gidado@gmail.com",
-        "Location": "Kofare"
-    },
-    {
-        "event_id": "gst-Q1R2S3T4U5",
-        "name": "Hadiza Mamman",
-        "email": "hadiza.mamman@hotmail.com",
-        "Location": "Wuro Bokki"
-    },
-    {
-        "event_id": "gst-V6W7X8Y9Z0",
-        "name": "Adamu Bello",
-        "email": "adamu.bello@yahoo.com",
-        "Location": "Sabon Layi"
-    },
-    {
-        "event_id": "gst-A1B2C3D4E6",
-        "name": "Mariam Abdulkarim",
-        "email": "mariam.abdulkarim@gmail.com",
-        "Location": "Wuro Chekke"
-    },
-    {
-        "event_id": "gst-F7G8H9I0J1",
-        "name": "Yakubu Ahmadu",
-        "email": "yakubu.ahmadu@hotmail.com",
-        "Location": "Girei"
-    },
-    {
-        "event_id": "gst-K2L3M4N5O6",
-        "name": "Zahra'u Sadiq",
-        "email": "zahrau.sadiq@yahoo.com",
-        "Location": "Wuro Dole"
-    },
-    {
-        "event_id": "gst-P7Q8R9S0T1",
-        "name": "Haruna Jika",
-        "email": "haruna.jika@gmail.com",
-        "Location": "Gereng"
-    },
-    {
-        "event_id": "gst-U2V3W4X5Y6",
-        "name": "Hauwa'u Lawal",
-        "email": "hauwau.lawal@hotmail.com",
-        "Location": "Wuro Boki"
-    },
-    {
-        "event_id": "gst-Z7A8B9C0D1",
-        "name": "Abdullahi Abubakar",
-        "email": "abdullahi.abubakar@yahoo.com",
-        "Location": "Mayo Belwa"
-    },
-    {
-        "event_id": "gst-E2F3G4H5I6",
-        "name": "Falmata Hassan",
-        "email": "falmata.hassan@gmail.com",
-        "Location": "Bangshika"
-    },
-    {
-        "event_id": "gst-J7K8L9M0N1",
-        "name": "Muhammad Tijjani",
-        "email": "muhammad.tijjani@hotmail.com",
-        "Location": "Lamurde"
-    },
-    {
-        "event_id": "gst-O2P3Q4R5S6",
-        "name": "Rabi'a Yusuf",
-        "email": "rabia.yusuf@yahoo.com",
-        "Location": "Song"
-    },
-    {
-        "event_id": "gst-T7U8V9W0X1",
-        "name": "Isa Garba",
-        "email": "isa.garba@gmail.com",
-        "Location": "Fufore"
-    },
-    {
-        "event_id": "gst-Y2Z3A4B5C6",
-        "name": "Fatima Aliyu",
-        "email": "fatima.aliyu@hotmail.com",
-        "Location": "Shelleng"
-    },
-    {
-        "event_id": "gst-D7E8F9G0H1",
-        "name": "Sulaiman Buba",
-        "email": "sulaiman.buba@yahoo.com",
-        "Location": "Madagali"
-    },
-    {
-        "event_id": "gst-I2J3K4L5M6",
-        "name": "Aisha Maina",
-        "email": "aisha.maina@gmail.com",
-        "Location": "Michika"
-    },
-    {
-        "event_id": "gst-N7O8P9Q0R1",
-        "name": "Usman Bala",
-        "email": "usman.bala@hotmail.com",
-        "Location": "Mubi North"
-    },
-    {
-        "event_id": "gst-S2T3U4V5W6",
-        "name": "Khadija Umar",
-        "email": "khadija.umar@yahoo.com",
-        "Location": "Mubi South"
-    },
-    {
-        "event_id": "gst-X7Y8Z9A0B1",
-        "name": "Ibrahim Sadiq",
-        "email": "ibrahim.sadiq@gmail.com",
-        "Location": "Numan"
-    },
-    {
-        "event_id": "gst-C2D3E4F5G6",
-        "name": "Hafsat Ahmed",
-        "email": "hafsat.ahmed@hotmail.com",
-        "Location": "Demsa"
-    },
-    {
-        "event_id": "gst-H7I8J9K0L1",
-        "name": "Ali Mamman",
-        "email": "ali.mamman@yahoo.com",
-        "Location": "Gombi"
-    },
-    {
-        "event_id": "gst-M2N3O4P5Q6",
-        "name": "Zulaiha Sani",
-        "email": "zulaiha.sani@gmail.com",
-        "Location": "Hong"
-    },
-    {
-        "event_id": "gst-R7S8T9U0V1",
-        "name": "Aminu Jalo",
-        "email": "aminu.jalo@hotmail.com",
-        "Location": "Jada"
-    },
-    {
-        "event_id": "gst-W2X3Y4Z5A6",
-        "name": "Halima Abubakar",
-        "email": "halima.abubakar@yahoo.com",
-        "Location": "Ganye"
-    },
-    {
-        "event_id": "gst-B7C8D9E0F1",
-        "name": "Yusuf Bello",
-        "email": "yusuf.bello@gmail.com",
-        "Location": "Toungo Ward"
-    },
-    {
-        "event_id": "gst-G2H3I4J5K6",
-        "name": "Maimuna Hassan",
-        "email": "maimuna.hassan@hotmail.com",
-        "Location": "Mayo Farang"
-    },
-    {
-        "event_id": "gst-L7M8N9O0P1",
-        "name": "Ahmad Babangida",
-        "email": "ahmad.babangida@yahoo.com",
-        "Location": "Guyuk"
-    },
-    {
-        "event_id": "gst-Q2R3S4T5U6",
-        "name": "Sauda Musa",
-        "email": "sauda.musa@gmail.com",
-        "Location": "Yola Ward"
-    },
-    {
-        "event_id": "gst-V7W8X9Y0Z1",
-        "name": "Abubakar Saleh",
-        "email": "abubakar.saleh@hotmail.com",
-        "Location": "Jimeta Ward"
-    },
-    {
-        "event_id": "gst-A2B3C4D5E7",
-        "name": "Hafsa Ibrahim",
-        "email": "hafsa.ibrahim@yahoo.com",
-        "Location": "Bachure"
-    },
-    {
-        "event_id": "gst-F8G9H0I1J2",
-        "name": "Murtala Adamu",
-        "email": "murtala.adamu@gmail.com",
-        "Location": "Kilange"
-    },
-    {
-        "event_id": "gst-K3L4M5N6O7",
-        "name": "Aisha Garba",
-        "email": "aisha.garba@hotmail.com",
-        "Location": "Limawa"
-    },
-    {
-        "event_id": "gst-P8Q9R0S1T2",
-        "name": "Hamisu Yakubu",
-        "email": "hamisu.yakubu@yahoo.com",
-        "Location": "Mbamba Ward"
-    },
-    {
-        "event_id": "gst-U3V4W5X6Y7",
-        "name": "Fatima Bello",
-        "email": "fatima.bello@gmail.com",
-        "Location": "Ngurore"
-    },
-    {
-        "event_id": "gst-Z8A9B0C1D2",
-        "name": "Salihu Usman",
-        "email": "salihu.usman@hotmail.com",
-        "Location": "Damare"
-    },
-    {
-        "event_id": "gst-E3F4G5H6I7",
-        "name": "Zainab Hassan",
-        "email": "zainab.hassan@yahoo.com",
-        "Location": "Pariya"
-    },
-    {
-        "event_id": "gst-J8K9L0M1N2",
-        "name": "Abdulkarim Jika",
-        "email": "abdulkarim.jika@gmail.com",
-        "Location": "Bole"
-    },
-    {
-        "event_id": "gst-O3P4Q5R6S7",
-        "name": "Hadiza Sani",
-        "email": "hadiza.sani@hotmail.com",
-        "Location": "Wuro Patuwal"
-    },
-    {
-        "event_id": "gst-T8U9V0W1X2",
-        "name": "Aliyu Hassan",
-        "email": "aliyu.hassan@yahoo.com",
-        "Location": "Gombe Abba"
-    },
-    {
-        "event_id": "gst-Y3Z4A5B6C7",
-        "name": "Mariam Baba",
-        "email": "mariam.baba@gmail.com",
-        "Location": "Wuro Gude"
-    },
-    {
-        "event_id": "gst-D8E9F0G1H2",
-        "name": "Sani Mamman",
-        "email": "sani.mamman@hotmail.com",
-        "Location": "Rumde"
-    },
-    {
-        "event_id": "gst-I3J4K5L6M7",
-        "name": "Rahma Umar",
-        "email": "rahma.umar@yahoo.com",
-        "Location": "Wuro Bagga"
-    },
-    {
-        "event_id": "gst-N8O9P0Q1R2",
-        "name": "Garba Suleiman",
-        "email": "garba.suleiman@gmail.com",
-        "Location": "Alkaleri Central"
-    },
-    {
-        "event_id": "gst-S3T4U5V6W7",
-        "name": "Amina Jalo",
-        "email": "amina.jalo@hotmail.com",
-        "Location": "Wuro Yero"
-    },
-    {
-        "event_id": "gst-X8Y9Z0A1B2",
-        "name": "Yakubu Aliyu",
-        "email": "yakubu.aliyu@yahoo.com",
-        "Location": "Sabon Gari"
-    },
-    {
-        "event_id": "gst-C3D4E5F6G7",
-        "name": "Nafisa Ahmed",
-        "email": "nafisa.ahmed@gmail.com",
-        "Location": "Yelwa Gongoba"
-    },
-    {
-        "event_id": "gst-H8I9J0K1L2",
-        "name": "Muhammad Bello",
-        "email": "muhammad.bello@hotmail.com",
-        "Location": "Gwadabawa Central"
-    },
-    {
-        "event_id": "gst-M3N4O5P6Q7",
-        "name": "Hafsat Haruna",
-        "email": "hafsat.haruna@yahoo.com",
-        "Location": "Namtari"
-    },
-    {
-        "event_id": "gst-R8S9T0U1V2",
-        "name": "Isma'il Garba",
-        "email": "ismail.garba@gmail.com",
-        "Location": "Alkaleri East"
-    },
-    {
-        "event_id": "gst-W3X4Y5Z6A7",
-        "name": "Khadija Aliyu",
-        "email": "khadija.aliyu@hotmail.com",
-        "Location": "Wuro Haawa"
-    },
-    {
-        "event_id": "gst-B8C9D0E1F2",
-        "name": "Usman Jika",
-        "email": "usman.jika@yahoo.com",
-        "Location": "Doubeli"
-    },
-    {
-        "event_id": "gst-G3H4I5J6K7",
-        "name": "Sakinah Umar",
-        "email": "sakinah.umar@gmail.com",
-        "Location": "Sangere Shuwa"
-    },
-    {
-        "event_id": "gst-L8M9N0O1P2",
-        "name": "Ahmad Hassan",
-        "email": "ahmad.hassan@hotmail.com",
-        "Location": "Wuro Nyibango"
-    },
-    {
-        "event_id": "gst-Q3R4S5T6U7",
-        "name": "Hauwa Baba",
-        "email": "hauwa.baba@yahoo.com",
-        "Location": "Tella"
-    },
-    {
-        "event_id": "gst-V8W9X0Y1Z2",
-        "name": "Musa Aliyu",
-        "email": "musa.aliyu@gmail.com",
-        "Location": "Wuro Lainde"
-    },
-    {
-        "event_id": "gst-A3B4C5D6E8",
-        "name": "Zulaihat Mamman",
-        "email": "zulaihat.mamman@hotmail.com",
-        "Location": "Ribadu Square"
-    },
-    {
-        "event_id": "gst-F9G0H1I2J3",
-        "name": "Kabiru Hassan",
-        "email": "kabiru.hassan@yahoo.com",
-        "Location": "Karewa Central"
-    },
-    {
-        "event_id": "gst-K4L5M6N7O8",
-        "name": "Fatima Jika",
-        "email": "fatima.jika@gmail.com",
-        "Location": "Demsawo"
-    },
-    {
-        "event_id": "gst-P9Q0R1S2T3",
-        "name": "Abdullahi Garba",
-        "email": "abdullahi.garba@hotmail.com",
-        "Location": "Makama A"
-    },
-    {
-        "event_id": "gst-U4V5W6X7Y8",
-        "name": "Maryam Hassan",
-        "email": "maryam.hassan@yahoo.com",
-        "Location": "Luggere Central"
-    },
-    {
-        "event_id": "gst-Z9A0B1C2D3",
-        "name": "Yusuf Aliyu",
-        "email": "yusuf.aliyu@gmail.com",
-        "Location": "Wuro Billi"
-    },
-    {
-        "event_id": "gst-E4F5G6H7I8",
-        "name": "Aisha Bello",
-        "email": "aisha.bello@hotmail.com",
-        "Location": "Nassarawo Central"
-    },
-    {
-        "event_id": "gst-J9K0L1M2N3",
-        "name": "Suleiman Umar",
-        "email": "suleiman.umar@yahoo.com",
-        "Location": "Viniklang Central"
-    },
-    {
-        "event_id": "gst-O4P5Q6R7S8",
-        "name": "Halima Hassan",
-        "email": "halima.hassan@gmail.com",
-        "Location": "Ajiya Central"
-    },
-    {
-        "event_id": "gst-T9U0V1W2X3",
-        "name": "Muhammad Aliyu",
-        "email": "muhammad.aliyu@hotmail.com",
-        "Location": "Bekaji Central"
-    },
-    {
-        "event_id": "gst-Y4Z5A6B7C8",
-        "name": "Khadijat Bello",
-        "email": "khadijat.bello@yahoo.com",
-        "Location": "Wuro Jabbe Central"
-    },
-    {
-        "event_id": "gst-D9E0F1G2H3",
-        "name": "Ibrahim Usman",
-        "email": "ibrahim.usman@gmail.com",
-        "Location": "Yolde Pate Central"
-    },
-    {
-        "event_id": "gst-I4J5K6L7M8",
-        "name": "Safiyyah Hassan",
-        "email": "safiyyah.hassan@hotmail.com",
-        "Location": "Sangere Central"
-    },
-    {
-        "event_id": "gst-N9O0P1Q2R3",
-        "name": "Aliyu Mamman",
-        "email": "aliyu.mamman@yahoo.com",
-        "Location": "Yelwa Central"
-    },
-    {
-        "event_id": "gst-S4T5U6V7W8",
-        "name": "Rukayya Hassan",
-        "email": "rukayya.hassan@gmail.com",
-        "Location": "Gwadabawa East"
-    },
-    {
-        "event_id": "gst-X9Y0Z1A2B3",
-        "name": "Ahmad Bello",
-        "email": "ahmad.bello@hotmail.com",
-        "Location": "Alkaleri West"
-    },
-    {
-        "event_id": "gst-C4D5E6F7G8",
-        "name": "Hadiza Aliyu",
-        "email": "hadiza.aliyu@yahoo.com",
-        "Location": "Wuro Hausa Central"
-    },
-    {
-        "event_id": "gst-H9I0J1K2L3",
-        "name": "Bashir Hassan",
-        "email": "bashir.hassan@gmail.com",
-        "Location": "Jabbi Lamba Central"
-    },
-    {
-        "event_id": "gst-M4N5O6P7Q8",
-        "name": "Zainab Bello",
-        "email": "zainab.bello@hotmail.com",
-        "Location": "Makama Central"
-    }
+  {
+    "event_id": "gst-SHoKlPKV5U1wI9j",
+    "name": "Usama Abdulhamid Kambari",
+    "email": "abdulhamidusamakambari@gmail.com",
+    "Location": "Sengere futy"
+  },
+  {
+    "event_id": "gst-5ezcWzcqJto89jz",
+    "name": "Abdullahi Muhammed",
+    "email": "abdullahimuhammed7195@gmail.com",
+    "Location": "Yola, Adamawa state."
+  },
+  {
+    "event_id": "gst-3wIPpMhrtDECV8O",
+    "name": "Favour Abraham",
+    "email": "abrahamfavour97@gmail.com",
+    "Location": "Modibbo Adama University, Yola"
+  },
+  {
+    "event_id": "gst-IYJISAmPz9jtiBD",
+    "name": "Afiyina Yohanna Sandreson",
+    "email": "afiyinayohannas@gmail.com",
+    "Location": "MAU"
+  },
+  {
+    "event_id": "gst-kwLsaJCXqwVXkQe",
+    "name": "Catherine Yadima",
+    "email": "ajicatherineyadima@gmail.com",
+    "Location": "Federal housing"
+  },
+  {
+    "event_id": "gst-6Y3XanAC1QF4X7N",
+    "name": "Blessing Sarah",
+    "email": "akinyoblessing@gmail.com",
+    "Location": "Adamawa"
+  },
+  {
+    "event_id": "gst-MVrOAYBBo2B8jKA",
+    "name": "ALIYU SAAD BOSE",
+    "email": "aliyusaadbose@gmail.com",
+    "Location": "Modibbo Adama University Yola"
+  },
+  {
+    "event_id": "gst-HUGhLNs3ENZrKTZ",
+    "name": "Musa Abdulrahman Murtala",
+    "email": "ammurtala1995@gmail.com",
+    "Location": "Modibbo Adama university Yola"
+  },
+  {
+    "event_id": "gst-4CzIhoQ0QI21wxs",
+    "name": "Augustine Augustina Lucina",
+    "email": "augustinea676@gmail.com",
+    "Location": "Shagari phase two yola town"
+  },
+  {
+    "event_id": "gst-pIgA9DHAoC7zGmJ",
+    "name": "Augustine Ishaya",
+    "email": "augustineishaya10@gmail.com",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-3K0RkkaVjt5SJFv",
+    "name": "AUWAL idris",
+    "email": "auwalidrisdarazo@gmail.com",
+    "Location": "Futy"
+  },
+  {
+    "event_id": "gst-UNpSY2134boMflA",
+    "name": "Christopher Danlami Baba",
+    "email": "christopherbaba715@gmail.com",
+    "Location": "Sangere Futy"
+  },
+  {
+    "event_id": "gst-5uICy0hjFmytOyc",
+    "name": "Cletus Muoneke",
+    "email": "cletusmuoneke23@gmail.com",
+    "Location": "Behind jambutu motor park"
+  },
+  {
+    "event_id": "gst-MJMjwUcGS2Fcnng",
+    "name": "Beecroft Comfort",
+    "email": "comfortbeecroft@gmail.com",
+    "Location": "Adamawa State"
+  },
+  {
+    "event_id": "gst-1WMatJ93b3Q6UWR",
+    "name": "Daniel Garba",
+    "email": "danielgarba101@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-9AQCKnBHSeoF6La",
+    "name": "Daniel-Praise Eleojo Israel",
+    "email": "danielpraiseisrael@gmail.com",
+    "Location": ""
+  },
+  {
+    "event_id": "gst-JCERbWCVlEZrENC",
+    "name": "Dan Jumaa Ojei",
+    "email": "danjumaojei@mcc.org",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-ZNLN8bdgXrl2CPK",
+    "name": "Deborah hasley Mohammed pori",
+    "email": "deborahasley33@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-FCIAskLej3FSR2k",
+    "name": "Deborah Ademola",
+    "email": "deborahthedoc@gmail.com",
+    "Location": ""
+  },
+  {
+    "event_id": "gst-0Rf6XIKVOjVb0RA",
+    "name": "Denis Denham Babangida",
+    "email": "denisbabangida7@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-9S3vUWZQe7aaRqA",
+    "name": "Faith Elihu Dalatu",
+    "email": "elihufaithdalatu@gmail.com",
+    "Location": "Modibbo Adama University Yola."
+  },
+  {
+    "event_id": "gst-x8ooZLqbzvKRD6o",
+    "name": "Enoch Augustine",
+    "email": "enochaugustine17@gmail.com",
+    "Location": "Adamawa State polytechnic"
+  },
+  {
+    "event_id": "gst-EAEpUEEc4JUYKaj",
+    "name": "Esthon Anyimauna",
+    "email": "esthonanyimauna1@gmail.com",
+    "Location": "MAU Yola"
+  },
+  {
+    "event_id": "gst-CE7BUHV1Qf7mFE2",
+    "name": "Florence Hauwa Aliyu",
+    "email": "florencealiyu3@gmail.com",
+    "Location": "Jimeta, Yola"
+  },
+  {
+    "event_id": "gst-gjzVOlWfDCN0HL9",
+    "name": "Frama Stephen",
+    "email": "framastephen200@gmail.com",
+    "Location": "Yola south"
+  },
+  {
+    "event_id": "gst-CeUCAumyOs0Un5c",
+    "name": "davidfromthenorth",
+    "email": "fromthenorthsouth@gmail.com",
+    "Location": "MODIBBO ADAMA UNIVERSITY YOLA"
+  },
+  {
+    "event_id": "gst-Xml6kqr1xJlmoZB",
+    "name": "Gabiya Danladi Yusuf",
+    "email": "gabiyayusuf2019@gmail.com",
+    "Location": "Girei"
+  },
+  {
+    "event_id": "gst-tewQEBmsLgEaYXO",
+    "name": "Gayawan Obida",
+    "email": "gaya1obid@gmail.com",
+    "Location": "Adamawa state"
+  },
+  {
+    "event_id": "gst-IEm4CdKmRUxnLEX",
+    "name": "Gideon",
+    "email": "gideonmallam406@gmail.com",
+    "Location": "Karu LGA, mararaba nasarawa state"
+  },
+  {
+    "event_id": "gst-7GIe68kjUUUCI2U",
+    "name": "Aisha Cheered Gloria Solomon From",
+    "email": "gloriasolos01@gmail.com",
+    "Location": "Adamawa State Nigeria"
+  },
+  {
+    "event_id": "gst-Vua7K3GHDKGvAeG",
+    "name": "Godwin Johnbaba",
+    "email": "godwinjohnbaba@gmail.com",
+    "Location": ""
+  },
+  {
+    "event_id": "gst-oaHEBR0hDvCQwBn",
+    "name": "Philip Godwin",
+    "email": "godwinphilip139@gmail.com",
+    "Location": "Bachure opposite Army Barracks Jimeta Yola"
+  },
+  {
+    "event_id": "gst-KhEtGFc7XHf3zWR",
+    "name": "Grace Markus Gwandi",
+    "email": "gracegwandy@gmail.com",
+    "Location": "Mautech"
+  },
+  {
+    "event_id": "gst-JzpBfQi32cw3Gir",
+    "name": "Hafsat Umar Sa'eed",
+    "email": "hafsatumarsaeed2002@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-1ZfuJMyHbASbyLD",
+    "name": "Ilochi Chibuzor Audu",
+    "email": "hamiltonilochi90@gmail.com",
+    "Location": "BADIRISA"
+  },
+  {
+    "event_id": "gst-YUJI0RPTtoUldhr",
+    "name": "Hassan Kwaghe Zira",
+    "email": "hassankwaghe56@gmail.com",
+    "Location": "Yola yoldepate"
+  },
+  {
+    "event_id": "gst-CKXgHMUyf30yEWf",
+    "name": "Hope Herbert",
+    "email": "hopehanawa12@gmail.com",
+    "Location": "Federal housing estate"
+  },
+  {
+    "event_id": "gst-SXwtIO9sIlI3e1p",
+    "name": "hyelladi alheri",
+    "email": "hyelladi45@gmail.com",
+    "Location": "Modibbo Adama University, Yola"
+  },
+  {
+    "event_id": "gst-0CIeRmMaB1whnGP",
+    "name": "Hyellablati Joseph",
+    "email": "hyellajoseph29@gmail.com",
+    "Location": "Bachure"
+  },
+  {
+    "event_id": "gst-5xX7WzSpLuqm9r6",
+    "name": "Ibrahim Mohammed Tukur",
+    "email": "ibrahim84tukur@gmail.com",
+    "Location": "Yola town, Lamido palace"
+  },
+  {
+    "event_id": "gst-EHeGdBkxYxMQ1nA",
+    "name": "Johnson 2",
+    "email": "innoshg4@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-78OKni7SqHNiAw0",
+    "name": "David Mani Ibrahim",
+    "email": "itzlimincj@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-fvmi1DdXIl4K5eW",
+    "name": "Muhammad Aliyu Jabbijo",
+    "email": "jabbijo@gmail.com",
+    "Location": "Girei"
+  },
+  {
+    "event_id": "gst-T436M5twF89MVaG",
+    "name": "Jessica Jacob",
+    "email": "jacobjessica419@gmail.com",
+    "Location": "MAU"
+  },
+  {
+    "event_id": "gst-UJWXniQRxrda6wy",
+    "name": "James Jairus Chabiri",
+    "email": "jairusjames2004@gmail.com",
+    "Location": "MAU"
+  },
+  {
+    "event_id": "gst-2SuqFKRLFgTBjHZ",
+    "name": "Jatong Deborah",
+    "email": "jatdeb018@gmail.com",
+    "Location": "Sangere Futy"
+  },
+  {
+    "event_id": "gst-i2MV5wrqB9qt34H",
+    "name": "Jatong Angela Maranzo",
+    "email": "jatongangela@gmail.com",
+    "Location": "Sangere futy"
+  },
+  {
+    "event_id": "gst-wWwoxm2GgxrxcZm",
+    "name": "Jennifer Havila",
+    "email": "jenniferabanyi@gmail.com",
+    "Location": "Sangere futy"
+  },
+  {
+    "event_id": "gst-9A31UHQaq2Az0OP",
+    "name": "Joy wuike Iliya",
+    "email": "joywuikeiliya@gmail.com",
+    "Location": "Modibbo Adama University, MAU YOLA"
+  },
+  {
+    "event_id": "gst-WAxfwj15ce0MIgV",
+    "name": "Judith Dati",
+    "email": "judithpeter153@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-pn4g4DHcLuvbVQF",
+    "name": "Julius Bayo",
+    "email": "juliusadebayoaremu@gmail.com",
+    "Location": "Sangere Futy"
+  },
+  {
+    "event_id": "gst-nuQlt4M5dHwhzHq",
+    "name": "Justice Luka Tizhe",
+    "email": "justicestringz@gmail.com",
+    "Location": "Yola, Nigeria"
+  },
+  {
+    "event_id": "gst-63RAnuM5KZTxrIN",
+    "name": "Kafte",
+    "email": "kaftetemantika@gmail.com",
+    "Location": "Girei"
+  },
+  {
+    "event_id": "gst-ClY5BE2LWtueyA8",
+    "name": "Veruwa",
+    "email": "kalepvmasi@gmail.com",
+    "Location": "Modibbo Adama University Yola"
+  },
+  {
+    "event_id": "gst-qAwkrZTHhGzZt5v",
+    "name": "Kauna Elkanah",
+    "email": "kaunaelkanah@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-9HyRBaU9ZmEPd1q",
+    "name": "Christopher Solomon",
+    "email": "krissongs123@gmail.com",
+    "Location": "Adamawa"
+  },
+  {
+    "event_id": "gst-eHCwWKbSwBNy9eV",
+    "name": "Gideon Eli",
+    "email": "lastyblack@gmail.com",
+    "Location": "Adamawa Yola"
+  },
+  {
+    "event_id": "gst-9EoiFYBNWfznHqy",
+    "name": "Lilian Iliya",
+    "email": "lilianbeshi16@gmail.com",
+    "Location": "Modibbo Adama University, Girei"
+  },
+  {
+    "event_id": "gst-aeTZmVDkPTca16U",
+    "name": "Hannah Lubba",
+    "email": "lubbahannah18@gmail.com",
+    "Location": "Yola, Adamawa State"
+  },
+  {
+    "event_id": "gst-TiQvhMs5oDUtU7Y",
+    "name": "Lubba Naaman Chandari",
+    "email": "lubbanaaman8@gmail.com",
+    "Location": "Jimata, yola"
+  },
+  {
+    "event_id": "gst-u1A4zlOWS23qQpx",
+    "name": "bishop fred lucas",
+    "email": "lucasbishopfred@gmail.com",
+    "Location": "Jalingo"
+  },
+  {
+    "event_id": "gst-ckwTtHHUxjkv6Di",
+    "name": "Manasseh John",
+    "email": "manassehjohnkwaji@gmail.com",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-MABUGAtHHw623dk",
+    "name": "Maureen Danladi",
+    "email": "maureendanladi92@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-eHZEEy8Kb7UJgAX",
+    "name": "Mercy Maxwell Machill",
+    "email": "mercymaxwell639@gmail.com",
+    "Location": "Sangere, Futy"
+  },
+  {
+    "event_id": "gst-cLPDL6YDlCDo7eY",
+    "name": "Miracle Jolly Justin",
+    "email": "miraclejustin89@gmail.com",
+    "Location": "Yola south"
+  },
+  {
+    "event_id": "gst-c2B4ek4Ps120aLh",
+    "name": "Margret Mosamnaro Lubba",
+    "email": "mlubba123@gmail.com",
+    "Location": "Adamawa"
+  },
+  {
+    "event_id": "gst-sZPultrRFTgXeNU",
+    "name": "Ninsunforibih Nuhu Akila",
+    "email": "ninsunakila@gmail.com",
+    "Location": "Adamawa, Yola"
+  },
+  {
+    "event_id": "gst-YDLSywoIoulS38J",
+    "name": "Nubiya Haziel",
+    "email": "nubiyayerima@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-jve6KbdDAGiPppH",
+    "name": "PHILIP EUCHERIA JELANI",
+    "email": "philipeucheria090@gmail.com",
+    "Location": "Karewa"
+  },
+  {
+    "event_id": "gst-mRtHsafAmeW2N7E",
+    "name": "Philip Stephen",
+    "email": "philipstephen202@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-KPstvJg9ylEe575",
+    "name": "Augustine 6",
+    "email": "preciousaugustine778@gmail.com",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-uao87WWoVvgr4Ff",
+    "name": "Rabi Kabiru",
+    "email": "rabikabirmamman@gmail.com",
+    "Location": "Yola north"
+  },
+  {
+    "event_id": "gst-pOFO66PxIVqerSQ",
+    "name": "Rahila Haruna",
+    "email": "rahilaharuna100@gmail.com",
+    "Location": "Jimeta yola"
+  },
+  {
+    "event_id": "gst-skDJgJaMYYtyF5B",
+    "name": "Nathan Renos",
+    "email": "renosnathan@gmail.com",
+    "Location": "Taraba State"
+  },
+  {
+    "event_id": "gst-yYoXzpMmre0nKNq",
+    "name": "Chiwar Rhoda",
+    "email": "rhodachiwar@gmail.com",
+    "Location": "Jimeta/Yola"
+  },
+  {
+    "event_id": "gst-hCtySkFFRIQUTk7",
+    "name": "Rita Danladi Panya",
+    "email": "ritadanladipanya@gmail.com",
+    "Location": "Jambutu Jimeta yola"
+  },
+  {
+    "event_id": "gst-vziogKQEv48xO3D",
+    "name": "Sadiq Khamisu Abdullahi",
+    "email": "sadiqkhamisu2020@gmail.com",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-gYf3zzFlFn2MHKY",
+    "name": "Salihu Abdulrauf",
+    "email": "salihuabdulrauf2@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-QVH4dGVuZbQPw8R",
+    "name": "Samson Homogome",
+    "email": "samsonhomogome2019@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-4cRE7muVudpn8Ht",
+    "name": "Samuel Suleiman",
+    "email": "samuelsuleiman24@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-MWu9k5dcgaqBfsj",
+    "name": "Shamsudeen Mohammed isa",
+    "email": "sasumha2021@gmail.com",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-3uQqeeVf20tn4xi",
+    "name": "Stephanie Monday",
+    "email": "stephaniemonday4@gmail.com",
+    "Location": "Jimeta"
+  },
+  {
+    "event_id": "gst-9Y35zy2GBi3sSs8",
+    "name": "Esther Micloth",
+    "email": "stermicks1404@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-daUBvBOVlFNfC22",
+    "name": "Simon Francis",
+    "email": "swabada12@gmail.com",
+    "Location": "Girie"
+  },
+  {
+    "event_id": "gst-30ZSNIKMxv0GNHr",
+    "name": "John Sylvester",
+    "email": "sylvesterj772@gmail.com",
+    "Location": "Modibbo Adama university"
+  },
+  {
+    "event_id": "gst-A7hsxNyE9I1S0Na",
+    "name": "Shadrack Peter",
+    "email": "taiyetaiye97@gmail.com",
+    "Location": "Bachure"
+  },
+  {
+    "event_id": "gst-zIii2aGbAoKgUEk",
+    "name": "Tamnwi Changbuin",
+    "email": "tamnwi2020@gmail.com",
+    "Location": "Sangere futy"
+  },
+  {
+    "event_id": "gst-gmLYGd0nUtD9vvB",
+    "name": "Joshua Lucas Samuel",
+    "email": "thetastehub001@gmail.com",
+    "Location": "Kaduna state"
+  },
+  {
+    "event_id": "gst-PYCFceQdY4ZJwNj",
+    "name": "Ukwe Sabo",
+    "email": "ukwesabo010@gmail.com",
+    "Location": "Adamawa State"
+  },
+  {
+    "event_id": "gst-Cht1DjcD4M2EPcQ",
+    "name": "Usmalik David Alexander",
+    "email": "usmalikalexander001@gmail.com",
+    "Location": "Mautech"
+  },
+  {
+    "event_id": "gst-bUBk4tkQBw8pL16",
+    "name": "Sarah James Vandi",
+    "email": "vandisarahjames3@gmail.com",
+    "Location": "Sengere futy"
+  },
+  {
+    "event_id": "gst-Mv4rJsMVrl3Yb8c",
+    "name": "Version Meshack",
+    "email": "versionmeshack8@gmail.com",
+    "Location": "Taraba"
+  },
+  {
+    "event_id": "gst-XnMO3XHI4ki2eVV",
+    "name": "WISDOM LUSETER ATSANAN",
+    "email": "wisdomluseter@gmail.com",
+    "Location": "Bachure Jimeta Yola"
+  },
+  {
+    "event_id": "gst-7SJyEs0gqBltqxQ",
+    "name": "Yakubu Harrison",
+    "email": "yakubuharrison@gmail.com",
+    "Location": "Girei Local Government Area, Adamawa State"
+  },
+  {
+    "event_id": "gst-dfXCERgMymJx3UI",
+    "name": "Yaruta Amos",
+    "email": "yarutabonnkeamos@gmail.com",
+    "Location": "Yola"
+  },
+  {
+    "event_id": "gst-2b1k3Q0d4Zy5xcC",
+    "name": "Jerome Amagai Blessed",
+    "email": "jeromeamagaiblessed@gmail.com",
+    "Location": "Modibbo Adama University, Yola" 
+  },
+  {
+    "event_id": "gst-3k2z4Q0d4Zy5xcC",
+    "name": "Fidelis Julius",
+    "email": "fidelisjulius53@gmail.com",
+    "Location": "Damdu, Yola South Adamawa State"
+  }
 ]
+# print(f'total number of attendees: {len(attendees)}'.title())
