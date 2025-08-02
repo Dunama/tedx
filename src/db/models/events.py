@@ -170,7 +170,7 @@ attendees = [
   {
     "event_id": "gst-JCERbWCVlEZrENC",
     "name": "Dan Jumaa Ojei",
-    "email": "danjumaojei@mcc.org",
+    "email": "danjumaaojei@mcc.org",
     "Location": "Jimeta"
   },
   {
@@ -640,18 +640,6 @@ attendees = [
     "name": "Yaruta Amos",
     "email": "yarutabonnkeamos@gmail.com",
     "Location": "Yola"
-  },
-  {
-    "event_id": "gst-2b1k3Q0d4Zy5xcC",
-    "name": "Jerome Amagai Blessed",
-    "email": "jeromeamagaiblessed@gmail.com",
-    "Location": "Modibbo Adama University, Yola" 
-  },
-  {
-    "event_id": "gst-3k2z4Q0d4Zy5xcC",
-    "name": "Fidelis Julius",
-    "email": "fidelisjulius53@gmail.com",
-    "Location": "Damdu, Yola South Adamawa State"
   }
 ]
 # print(f'total number of attendees: {len(attendees)}'.title())
